@@ -1,26 +1,112 @@
+/* app/globals.css (Tailwind v4) */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================================
+   PreventiGen — Design Tokens (Paleta A: Clínica premium + tech)
+   --------------------------------------------------------------------------
+   Cómo se usan:
+   - Colores “brand” (prefijo pg-): si querés llamar a la marca directo.
+     Ej: bg-pg-navy, text-pg-blue, border-pg-cyan
+   - Colores “semánticos” (recomendado): para construir UI consistente.
+     Ej: bg-background, text-foreground, text-heading, bg-primary, ring-accent
+   ========================================================================== */
+
+@theme {
+  /* -----------------------------
+     BRAND (paleta base)
+     ----------------------------- */
+
+  /* Navy profundo (#0B1F3B)
+     Uso: headers, navbar, títulos, overlays de hero, “seriedad clínica”. */
+  --color-pg-navy: #0B1F3B;
+
+  /* Azul médico (#1F6FEB)
+     Uso: CTA primario, links, estados “activo”, elementos interactivos. */
+  --color-pg-blue: #1F6FEB;
+
+  /* Cian suave (#2DD4BF)
+     Uso: acentos IA/data, highlights, badges, focus rings, detalles finos. */
+  --color-pg-cyan: #2DD4BF;
+
+  /* Blanco limpio (#F8FAFC)
+     Uso: fondo general de la web (sensación “clínica”, limpio). */
+  --color-pg-offwhite: #F8FAFC;
+
+  /* Gris texto (#334155)
+     Uso: texto principal, párrafos, contenido largo (legibilidad). */
+  --color-pg-text: #334155;
+
+  /* -----------------------------
+     SEMÁNTICOS (recomendado)
+     -----------------------------
+     Estos son los que vas a usar en componentes por consistencia:
+     bg-background, text-foreground, bg-primary, ring-accent, etc.
+  */
+
+  /* Superficies */
+  --color-background: var(--color-pg-offwhite); /* fondo de la página */
+  --color-surface: #ffffff;                     /* cards, secciones elevadas */
+  --color-surface-muted: #f1f5f9;               /* fondos suaves/alternados */
+
+  /* Texto */
+  --color-foreground: var(--color-pg-text);     /* texto principal */
+  --color-heading: var(--color-pg-navy);        /* títulos y textos “strong” */
+  --color-muted: #64748b;                       /* texto secundario (slate-500) */
+
+  /* Bordes */
+  --color-border: #e2e8f0;                      /* bordes suaves (cards/inputs) */
+  --color-border-strong: #cbd5e1;               /* bordes marcados (dividers) */
+
+  /* Acciones */
+  --color-primary: var(--color-pg-blue);        /* CTA / acción principal */
+  --color-primary-foreground: #ffffff;          /* texto sobre primary */
+
+  /* Acentos (IA/data) */
+  --color-accent: var(--color-pg-cyan);         /* acento */
+  --color-accent-foreground: var(--color-pg-navy);
+
+  /* Hero overlay (para video/imagen de fondo)
+     Uso: capa oscura para legibilidad del texto en hero */
+  --color-hero-overlay: rgb(11 31 59 / 0.70);
+
+  /* Estados (opcionales, pero útiles en formularios y feedback) */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==========================================================================
+   Base global (mínimo, sin “atarte” a estilos duros)
+   ========================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  /* Títulos por defecto (podés sobreescribir con clases en componentes) */
+  h1, h2, h3, h4 {
+    color: var(--color-heading);
+  }
+
+  /* Links: estilo sobrio y médico */
+  a {
+    color: var(--color-primary);
+    text-underline-offset: 3px;
+  }
+
+  /* Focus visible accesible y consistente con el acento IA */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  /* Selección de texto (detalle premium) */
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+  }
 }
