@@ -24,8 +24,8 @@ export default function Home() {
 
       <main>
         <HeroSection
-          backgroundImageSrc="/images/hero-clinica.jpg"
-          // backgroundVideoSrc="/videos/hero-clinica.mp4"
+         // backgroundImageSrc="/images/hero-clinica.jpg"
+           backgroundVideoSrc="/videos/background video.mp4"
         />
         <TrustBar />
         <HowItWorks />

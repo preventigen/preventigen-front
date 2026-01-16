@@ -1,40 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { Container } from "../ui/Container";
 import { SectionHeader } from "../ui/SectionHeader";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { BlurFade } from "@/components/ui/blur-fade";
 
 type Item = { q: string; a: string };
-
-function FAQItem({
-  item,
-  index,
-  open,
-  onToggle,
-}: {
-  item: Item;
-  index: number;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  const id = `faq-${index}`;
-  return (
-    <div className="rounded-2xl border border-border bg-surface">
-      <button
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
-        onClick={onToggle}
-        aria-expanded={open}
-        aria-controls={id}
-      >
-        <span className="text-heading font-medium">{item.q}</span>
-        <span className="text-muted">{open ? "−" : "+"}</span>
-      </button>
-      <div id={id} className={`px-5 pb-5 ${open ? "block" : "hidden"}`}>
-        <p className="text-muted leading-relaxed">{item.a}</p>
-      </div>
-    </div>
-  );
-}
 
 export function FAQSection() {
   const items: Item[] = [
@@ -68,24 +44,23 @@ export function FAQSection() {
     },
   ];
 
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   return (
     <section id="preguntas" className="scroll-mt-24 py-16 sm:py-20 bg-surface-muted/40">
       <Container>
         <SectionHeader title="Preguntas frecuentes" />
 
-        <div className="mt-10 space-y-3">
-          {items.map((item, idx) => (
-            <FAQItem
-              key={item.q}
-              item={item}
-              index={idx}
-              open={openIndex === idx}
-              onToggle={() => setOpenIndex(openIndex === idx ? null : idx)}
-            />
-          ))}
-        </div>
+        <BlurFade inView delay={0.08}>
+          <div className="mt-10 rounded-2xl border border-border bg-surface px-6">
+            <Accordion type="single" collapsible defaultValue="item-0">
+              {items.map((item, idx) => (
+                <AccordionItem key={item.q} value={`item-${idx}`}>
+                  <AccordionTrigger className="text-heading">{item.q}</AccordionTrigger>
+                  <AccordionContent className="text-muted leading-relaxed">{item.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </BlurFade>
       </Container>
     </section>
   );
