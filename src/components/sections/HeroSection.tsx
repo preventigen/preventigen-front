@@ -7,8 +7,8 @@ import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 
 type Props = {
-  backgroundImageSrc?: string; // vos lo completás
-  backgroundVideoSrc?: string; // opcional
+  backgroundImageSrc?: string; 
+  backgroundVideoSrc?: string; 
 };
 
 export function HeroSection({ backgroundImageSrc, backgroundVideoSrc }: Props) {
