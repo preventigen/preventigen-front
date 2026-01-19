@@ -60,7 +60,7 @@ export function AIDataSection() {
             <BlurFade key={block.title} inView delay={idx * 0.06} className="lg:col-span-2">
               <SurfaceCard className="lg:col-span-2">
                 <h3 className="text-heading font-semibold">{block.title}</h3>
-                <p className="mt-2 text-muted leading-relaxed">{block.text}</p>
+                <p className="mt-2 text-muted-foreground leading-relaxed">{block.text}</p>
               </SurfaceCard>
             </BlurFade>
           ))}

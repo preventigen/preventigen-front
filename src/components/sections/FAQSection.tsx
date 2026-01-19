@@ -55,7 +55,7 @@ export function FAQSection() {
               {items.map((item, idx) => (
                 <AccordionItem key={item.q} value={`item-${idx}`}>
                   <AccordionTrigger className="text-heading">{item.q}</AccordionTrigger>
-                  <AccordionContent className="text-muted leading-relaxed">{item.a}</AccordionContent>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">{item.a}</AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

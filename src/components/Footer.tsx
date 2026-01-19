@@ -18,7 +18,7 @@ export function Footer() {
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-heading font-semibold">PreventiGen</p>
-            <p className="mt-2 text-sm text-muted max-w-sm">
+            <p className="mt-2 text-sm text-muted-foreground max-w-sm">
               Medicina preventiva y tecnología aplicada.
             </p>
           </div>
@@ -44,11 +44,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-border bg-surface-muted p-4 text-sm text-muted">
+        <div className="mt-8 rounded-2xl border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
           La información de este sitio no sustituye una consulta médica.
         </div>
 
-        <p className="mt-6 text-xs text-muted">
+        <p className="mt-6 text-xs text-muted-foreground">
           © PreventiGen — Medicina preventiva y tecnología aplicada.
         </p>
       </Container>

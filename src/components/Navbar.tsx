@@ -115,7 +115,7 @@ export function Navbar() {
                           Solicitar contacto
                         </a>
                       </Button>
-                      <p className="mt-3 text-xs text-muted">
+                      <p className="mt-3 text-xs text-muted-foreground">
                         No es atención de urgencias. Te contactamos para orientarte.
                       </p>
                     </div>

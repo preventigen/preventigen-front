@@ -8,7 +8,7 @@ function TeamCard({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
       <h3 className="text-heading font-semibold">{title}</h3>
-      <p className="mt-2 text-muted leading-relaxed">{text}</p>
+      <p className="mt-2 text-muted-foreground leading-relaxed">{text}</p>
     </div>
   );
 }

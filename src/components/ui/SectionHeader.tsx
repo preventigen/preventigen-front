@@ -16,7 +16,7 @@ export function SectionHeader({ title, subtitle, align = "left", className = "" 
         {title}
       </h2>
       {subtitle ? (
-        <p className="text-muted mt-3 leading-relaxed">
+        <p className="text-muted-foreground mt-3 leading-relaxed">
           {subtitle}
         </p>
       ) : null}

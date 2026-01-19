@@ -64,7 +64,7 @@ export function DigitalTwinSection() {
               </div>
 
               <h3 className="text-heading font-semibold mt-8">Para qué sirve</h3>
-              <p className="mt-3 text-muted leading-relaxed">
+              <p className="mt-3 text-muted-foreground leading-relaxed">
                 Permite simular escenarios y evaluar posibles respuestas de manera informada, sin intervenir
                 en el cuerpo, para acompañar una prevención más precisa.
               </p>
@@ -81,16 +81,16 @@ export function DigitalTwinSection() {
               </ul>
 
               <div className="mt-8 rounded-2xl border border-border bg-surface p-5">
-                <p className="text-xs text-muted">Diagrama (simple)</p>
+                <p className="text-xs text-muted-foreground">Diagrama (simple)</p>
                 <div className="mt-3 flex flex-col gap-3 text-sm">
                   <div className="rounded-xl border border-border bg-surface-muted p-3">
                     Datos clínicos + biomarcadores + genética
                   </div>
-                  <div className="text-center text-muted">→</div>
+                  <div className="text-center text-muted-foreground">→</div>
                   <div className="rounded-xl border border-border bg-surface-muted p-3">
                     Modelo clínico virtual (gemelo digital)
                   </div>
-                  <div className="text-center text-muted">→</div>
+                  <div className="text-center text-muted-foreground">→</div>
                   <div className="rounded-xl border border-border bg-surface-muted p-3">
                     Escenarios + seguimiento preventivo
                   </div>

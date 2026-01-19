@@ -190,7 +190,7 @@ export function ContactSection() {
                   ) : null}
                 </div>
 
-                <p className="text-xs text-muted">
+                <p className="text-xs text-muted-foreground">
                   PreventiGen no atiende urgencias. Ante una emergencia, acudí a un servicio médico.
                 </p>
               </div>
@@ -200,21 +200,21 @@ export function ContactSection() {
           <BlurFade inView delay={0.12}>
             <div className="rounded-2xl border border-border bg-surface p-6">
               <h3 className="text-heading font-semibold">Contacto</h3>
-              <p className="mt-2 text-muted leading-relaxed">
+              <p className="mt-2 text-muted-foreground leading-relaxed">
                 Completá el formulario y te contactamos para orientarte. Si querés, también podés dejar un
                 mensaje por WhatsApp (opcional).
               </p>
 
               <div className="mt-6 space-y-3 text-sm">
                 <div className="rounded-xl border border-border bg-surface-muted p-4">
-                  <p className="text-muted">Canal</p>
+                  <p className="text-muted-foreground">Canal</p>
                   <p className="mt-1 font-medium text-heading">WhatsApp (opcional)</p>
-                  <p className="mt-1 text-muted">Agregá tu link cuando lo tengas.</p>
+                  <p className="mt-1 text-muted-foreground">Agregá tu link cuando lo tengas.</p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface-muted p-4">
-                  <p className="text-muted">Email</p>
+                  <p className="text-muted-foreground">Email</p>
                   <p className="mt-1 font-medium text-heading">contacto@preventigen.com</p>
-                  <p className="mt-1 text-muted">(placeholder, reemplazar)</p>
+                  <p className="mt-1 text-muted-foreground">(placeholder, reemplazar)</p>
                 </div>
               </div>
 

@@ -72,7 +72,7 @@ export function ECAMMSection() {
                   <BlurFade key={feature.title} inView delay={0.08 + idx * 0.04}>
                     <div className="rounded-xl border border-border bg-surface-muted p-4">
                       <p className="text-heading font-medium">{feature.title}</p>
-                      <p className="mt-2 text-sm text-muted">{feature.text}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">{feature.text}</p>
                     </div>
                   </BlurFade>
                 ))}
@@ -91,20 +91,20 @@ export function ECAMMSection() {
 
           <BlurFade inView delay={0.18} className="lg:col-span-6">
             <SurfaceCard className="lg:col-span-6">
-              <p className="text-sm text-muted">
+              <p className="text-sm text-muted-foreground">
                 Vista previa ilustrativa (mock): tablero de resumen clínico + alertas + seguimiento.
               </p>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 <div className="rounded-xl border border-border bg-surface-muted p-4">
-                  <p className="text-xs text-muted">Alerta</p>
+                  <p className="text-xs text-muted-foreground">Alerta</p>
                   <p className="mt-1 font-semibold text-danger">Señal a revisar</p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface-muted p-4">
-                  <p className="text-xs text-muted">Resumen</p>
+                  <p className="text-xs text-muted-foreground">Resumen</p>
                   <p className="mt-1 font-semibold text-heading">Información clave</p>
                 </div>
                 <div className="rounded-xl border border-border bg-surface-muted p-4">
-                  <p className="text-xs text-muted">Seguimiento</p>
+                  <p className="text-xs text-muted-foreground">Seguimiento</p>
                   <p className="mt-1 font-semibold text-heading">Evolución</p>
                 </div>
               </div>

@@ -46,9 +46,9 @@ export function HowItWorks() {
                       <step.Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">{step.n}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{step.n}</p>
                       <h3 className="mt-2 text-heading font-semibold">{step.title}</h3>
-                      <p className="mt-2 text-muted leading-relaxed">{step.text}</p>
+                      <p className="mt-2 text-muted-foreground leading-relaxed">{step.text}</p>
                     </div>
                   </div>
                 </CardContent>
