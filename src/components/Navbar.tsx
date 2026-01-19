@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MenuIcon } from "lucide-react";
 import { Container } from "./ui/Container";
 import {
@@ -37,20 +37,12 @@ export function Navbar() {
   );
 
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-heading/90 backdrop-blur">
         <Container className="flex h-16 items-center">
-          <nav
-            className="flex w-full items-center justify-between"
-            aria-label="Navegación principal"
-          >
+          <nav className="flex w-full items-center justify-between" aria-label="Navegación principal">
             {/* Brand */}
             <a href="#top" className="flex items-center gap-2 text-white">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-accent/20 text-accent">
@@ -59,7 +51,7 @@ export function Navbar() {
               <span className="font-semibold tracking-tight">PreventiGen</span>
             </a>
 
-            {/* Desktop links */}
+            {/* Desktop */}
             <div className="hidden items-center gap-4 lg:flex">
               <NavigationMenu viewport={false} className="text-white">
                 <NavigationMenuList className="gap-1">
@@ -92,73 +84,58 @@ export function Navbar() {
             </div>
 
             {/* Mobile */}
-            {mounted ? (
-              <Sheet open={open} onOpenChange={setOpen}>
-                <SheetTrigger asChild>
-                  <button
-                    className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
-                    aria-label="Abrir menú"
-                    type="button"
-                  >
-                    <MenuIcon className="h-5 w-5" />
-                  </button>
-                </SheetTrigger>
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
+                  aria-label="Abrir menú"
+                  type="button"
+                >
+                  <MenuIcon className="h-5 w-5" />
+                </button>
+              </SheetTrigger>
 
-                <SheetContent side="right" className="border-border bg-surface">
-                  <SheetHeader>
-                    <SheetTitle className="text-heading">Menú</SheetTitle>
-                  </SheetHeader>
+              <SheetContent side="right" className="border-border bg-surface">
+                <SheetHeader>
+                  <SheetTitle className="text-heading">Menú</SheetTitle>
+                </SheetHeader>
 
-                  <div className="px-4 pb-6">
-                    <ul className="flex flex-col gap-3">
-                      {items.map((it) => (
-                        <li key={it.href}>
-                          <a
-                            href={it.href}
-                            className="block rounded-xl px-3 py-2 text-foreground hover:bg-surface-muted"
-                            onClick={() => setOpen(false)}
-                          >
-                            {it.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-6">
-                      {/* CTA Mobile (mismo estilo) */}
-                      <a
-                        href="#contacto"
-                        onClick={() => setOpen(false)}
-                        className="block w-full"
-                      >
-                        <ShimmerButton
-                          shimmerColor="rgba(255, 255, 255, 0.35)"
-                          shimmerDuration="4.5s"
-                          shimmerSize="0.12em"
-                          borderRadius="14px"
-                          background="var(--color-primary)"
-                          className="h-11 w-full px-6 text-sm font-medium text-primary-foreground shadow-sm"
+                <div className="px-4 pb-6">
+                  <ul className="flex flex-col gap-3">
+                    {items.map((it) => (
+                      <li key={it.href}>
+                        <a
+                          href={it.href}
+                          className="block rounded-xl px-3 py-2 text-foreground hover:bg-surface-muted"
+                          onClick={() => setOpen(false)}
                         >
-                          Solicitar contacto
-                        </ShimmerButton>
-                      </a>
+                          {it.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
 
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        No es atención de urgencias. Te contactamos para orientarte.
-                      </p>
-                    </div>
+                  <div className="mt-6">
+                    <a href="#contacto" onClick={() => setOpen(false)} className="block w-full">
+                      <ShimmerButton
+                        shimmerColor="rgba(255, 255, 255, 0.35)"
+                        shimmerDuration="4.5s"
+                        shimmerSize="0.12em"
+                        borderRadius="14px"
+                        background="var(--color-primary)"
+                        className="h-11 w-full px-6 text-sm font-medium text-primary-foreground shadow-sm"
+                      >
+                        Solicitar contacto
+                      </ShimmerButton>
+                    </a>
+
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      No es atención de urgencias. Te contactamos para orientarte.
+                    </p>
                   </div>
-                </SheetContent>
-              </Sheet>
-            ) : (
-              <button
-                className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
-                aria-label="Abrir menú"
-                type="button"
-              >
-                <MenuIcon className="h-5 w-5" />
-              </button>
-            )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </nav>
         </Container>
       </header>
