@@ -13,9 +13,9 @@ import {
 
 import { Container } from "../ui/Container";
 import { SectionHeader } from "../ui/SectionHeader";
-import { BentoGrid } from "@/components/ui/bento-grid";
-import { MagicCard } from "@/components/ui/magic-card";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { BentoGrid } from "@/src/components/magic/ui/bento-grid";
+import { MagicCard } from "@/src/components/magic/ui/magic-card";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
 
 const aiBlocks = [
   {

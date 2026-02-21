@@ -1,10 +1,10 @@
 "use client";
 
 import { Container } from "../ui/Container";
-import { Badge } from "@/components/ui/badge";
-import { BlurFade } from "@/components/ui/blur-fade";
-import { FlickeringGrid } from "@/components/ui/flickering-grid";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { Badge } from "@/src/components/magic/ui/badge";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
+import { FlickeringGrid } from "@/src/components/magic/ui/flickering-grid";
+import { ShimmerButton } from "@/src/components/magic/ui/shimmer-button";
 
 type Props = {
   backgroundImageSrc?: string; 

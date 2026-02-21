@@ -14,8 +14,8 @@ import {
 
 import { Container } from "../ui/Container";
 import { SectionHeader } from "../ui/SectionHeader";
-import { BlurFade } from "@/components/ui/blur-fade";
-import { MagicCard } from "@/components/ui/magic-card";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
+import { MagicCard } from "@/src/components/magic/ui/magic-card";
 
 type Pillar = {
   title: string;

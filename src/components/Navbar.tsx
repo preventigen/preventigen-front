@@ -8,16 +8,16 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "@/components/ui/navigation-menu";
+} from "@/src/components/magic/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { ScrollProgress } from "@/components/ui/scroll-progress";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+} from "@/src/components/magic/ui/sheet";
+import { ScrollProgress } from "@/src/components/magic/ui/scroll-progress";
+import { ShimmerButton } from "@/src/components/magic/ui/shimmer-button";
 
 type NavItem = { label: string; href: string };
 
@@ -30,8 +30,7 @@ export function Navbar() {
       { label: "Gemelo Digital", href: "#gemelo" },
       { label: "IA aplicada", href: "#ia" },
       { label: "Equipo médico", href: "#equipo" },
-      { label: "Preguntas", href: "#preguntas" },
-      { label: "Contacto", href: "#contacto" },
+      { label: "Preguntas", href: "#preguntas" }
     ],
     []
   );

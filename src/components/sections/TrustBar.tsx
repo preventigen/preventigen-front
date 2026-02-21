@@ -1,8 +1,8 @@
 "use client";
 
 import { Container } from "../ui/Container";
-import { Badge } from "@/components/ui/badge";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { Badge } from "@/src/components/magic/ui/badge";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
 
 export function TrustBar() {
   const items = [

@@ -1,9 +1,9 @@
 "use client";
 
 import { Container } from "../ui/Container";
-import { Button } from "@/components/ui/button";
-import { BlurFade } from "@/components/ui/blur-fade";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/src/components/magic/ui/button";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
+import { Badge } from "@/src/components/magic/ui/badge";
 import { ArrowRight, ShieldCheck, Stethoscope, Sparkles } from "lucide-react";
 
 function HeroChip({ children }: { children: React.ReactNode }) {

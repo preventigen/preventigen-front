@@ -7,10 +7,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { BlurFade } from "@/components/ui/blur-fade";
+} from "@/src/components/magic/ui/accordion";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
 import { HelpCircle, ShieldCheck, Stethoscope, Sparkles } from "lucide-react";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { ShimmerButton } from "@/src/components/magic/ui/shimmer-button";
 
 type Item = { q: string; a: string; tag?: "clínico" | "IA" | "datos" | "urgencias" };
 

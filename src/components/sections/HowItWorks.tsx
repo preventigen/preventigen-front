@@ -3,8 +3,8 @@
 import { ClipboardList, FileCheck2, LineChart } from "lucide-react";
 import { Container } from "../ui/Container";
 import { SectionHeader } from "../ui/SectionHeader";
-import { BlurFade } from "@/components/ui/blur-fade";
-import { Card, CardContent } from "@/components/ui/card";
+import { BlurFade } from "@/src/components/magic/ui/blur-fade";
+import { Card, CardContent } from "@/src/components/magic/ui/card";
 
 const steps = [
   {
