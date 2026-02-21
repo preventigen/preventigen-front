@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MenuIcon } from "lucide-react";
+import { LogIn, MenuIcon } from "lucide-react";
 import { Container } from "./ui/Container";
 import {
   NavigationMenu,
@@ -64,6 +64,15 @@ export function Navbar() {
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   ))}
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      href="/credentials"
+                      aria-label="Ir a iniciar sesion"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 text-white/85 transition hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-heading"
+                    >
+                      <LogIn className="h-4 w-4" />
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
 
@@ -112,6 +121,16 @@ export function Navbar() {
                         </a>
                       </li>
                     ))}
+                    <li>
+                      <a
+                        href="/credentials"
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-foreground hover:bg-surface-muted"
+                        onClick={() => setOpen(false)}
+                      >
+                        <LogIn className="h-4 w-4" />
+                        Iniciar sesion
+                      </a>
+                    </li>
                   </ul>
 
                   <div className="mt-6">
