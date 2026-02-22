@@ -281,7 +281,7 @@ export function CredentialsView() {
 
       // Si querés ir a una pantalla específica:
       // router.replace("/panel-medico");
-      router.push("/");
+      router.push("/medico");
       router.refresh(); // importante para refrescar session en App Router
     } catch (error) {
       console.error("Error en login:", error);
@@ -723,3 +723,4 @@ export function CredentialsView() {
     </section>
   );
 }
+
