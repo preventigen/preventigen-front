@@ -3,8 +3,8 @@ import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string(),
+  password: z.string().min(1, "Password requerida"),
 });
 
 const medicoLoginSchema = z.object({
@@ -60,28 +60,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (rawCredentials) => {
-        const parsedCredentials = loginSchema.safeParse(rawCredentials);
-        if (!parsedCredentials.success) return null;
+  const parsedCredentials = loginSchema.safeParse(rawCredentials);
+  if (!parsedCredentials.success) {
+    console.log("❌ Credenciales inválidas por zod", parsedCredentials.error.flatten());
+    return null;
+  }
 
-        if (!process.env.BACKEND_URL) {
-          throw new Error("BACKEND_URL no definido");
-        }
+  if (!process.env.BACKEND_URL) {
+    console.log("❌ Falta BACKEND_URL");
+    throw new Error("BACKEND_URL no definido");
+  }
 
-        const res = await fetch(`${process.env.BACKEND_URL}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(parsedCredentials.data),
-          cache: "no-store",
-        });
+  const res = await fetch(`${process.env.BACKEND_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(parsedCredentials.data),
+    cache: "no-store",
+  });
 
-        if (!res.ok) return null;
+  console.log("➡️ /auth/login status:", res.status);
 
-        const json: unknown = await res.json();
-        const parsedResponse = backendLoginSchema.safeParse(json);
-        if (!parsedResponse.success) return null;
+  if (!res.ok) {
+    const txt = await res.text();
+    console.log("❌ Backend login error:", txt);
+    return null;
+  }
 
-        return mapBackendUser(parsedResponse.data);
-      },
+  const json = await res.json();
+  console.log("✅ Backend login response:", json);
+
+  const parsedResponse = backendLoginSchema.safeParse(json);
+  if (!parsedResponse.success) {
+    console.log("❌ Respuesta backend no matchea schema", parsedResponse.error.flatten());
+    return null;
+  }
+
+  return mapBackendUser(parsedResponse.data);
+},
     }),
   ],
   callbacks: {

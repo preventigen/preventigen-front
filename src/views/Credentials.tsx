@@ -31,7 +31,7 @@ import {
   validateSpecialty,
 } from "@/src/utils/validations";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 type Mode = "login" | "register";
 
 type LoginData = {
@@ -93,7 +93,7 @@ function InlineFieldMessage({
 }) {
   return (
 
-    
+
     <div id={id} aria-live="polite" className="mt-1 min-h-[24px]">
       <AnimatePresence mode="wait" initial={false}>
         {error ? (
@@ -192,7 +192,8 @@ export function CredentialsView() {
   const [loginTouched, setLoginTouched] = useState<LoginTouched>({});
   const [registerTouched, setRegisterTouched] = useState<RegisterTouched>({});
   const [feedback, setFeedback] = useState<string>("");
-  const router = useRouter()
+  const [isRegistering, setIsRegistering] = useState(false);
+  const router = useRouter();
   const loginEmailError = loginTouched.email ? loginErrors.email : undefined;
   const loginPasswordError = loginTouched.password ? loginErrors.password : undefined;
   const registerEmailError = registerTouched.email ? registerErrors.email : undefined;
@@ -247,7 +248,10 @@ export function CredentialsView() {
 
   async function onLoginSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    setFeedback("");
     setLoginTouched({ email: true, password: true });
+
     const nextErrors = validateLoginData(loginData);
     setLoginErrors(nextErrors);
 
@@ -255,22 +259,37 @@ export function CredentialsView() {
       setFeedback("Corrige los errores del formulario para continuar.");
       return;
     }
-    const res = signIn("credentials", {
-    email: loginData.email,
-    password: loginData.password,
-    redirect: false,
-  })
 
-  if ((await res)?.error) {
-    setFeedback("Credenciales inválidas.")
-    return
+    try {
+      const res = await signIn("credentials", {
+        email: loginData.email,
+        password: loginData.password,
+        redirect: false,
+        // callbackUrl: "/panel-medico", // opcional, recomendado
+      });
+
+      if (!res) {
+        setFeedback("No se pudo iniciar sesión. Intenta nuevamente.");
+        return;
+      }
+
+      if (res.error) {
+        // Auth.js normalmente devuelve codes tipo "CredentialsSignin"
+        setFeedback("Credenciales inválidas.");
+        return;
+      }
+
+      // Si querés ir a una pantalla específica:
+      // router.replace("/panel-medico");
+      router.push("/");
+      router.refresh(); // importante para refrescar session en App Router
+    } catch (error) {
+      console.error("Error en login:", error);
+      setFeedback("Ocurrió un error al iniciar sesión. Intenta nuevamente.");
+    }
   }
 
-  router.push("/")
-    
-  }
-
-  function onRegisterSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onRegisterSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setRegisterTouched({
       email: true,
@@ -286,7 +305,51 @@ export function CredentialsView() {
       return;
     }
 
-    setFeedback("Formulario de registro valido. Listo para conectar a tu API.");
+    setIsRegistering(true);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: registerData.email,
+          password: registerData.password,
+          nombre: registerData.name,
+          especialidad: registerData.specialty,
+        }),
+      });
+      if (response.ok) { alert("Registro exitoso. Ya puedes iniciar sesion.") }
+      if (!response.ok) {
+        let errorMessage = "No se pudo completar el registro.";
+
+        try {
+          const errorData = await response.json();
+          if (typeof errorData?.message === "string") {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // Ignoramos errores de parseo y mostramos un mensaje generico.
+        }
+
+        setFeedback(errorMessage);
+        return;
+      }
+
+      setFeedback("Registro exitoso. Ya puedes iniciar sesion.");
+      setLoginData({ email: registerData.email, password: "" });
+      setRegisterData(registerInitial);
+      setRegisterErrors({});
+      setRegisterTouched({});
+      setMode("login");
+    } catch (error) {
+      console.error("Error al registrar usuario:", error);
+      setFeedback("No se pudo conectar con el servidor de registro.");
+    } finally {
+      setIsRegistering(false);
+    }
   }
 
   return (
@@ -628,8 +691,8 @@ export function CredentialsView() {
                           <PasswordRequirements value={registerData.password} />
                         </div>
 
-                        <Button type="submit" className="mt-1 h-10">
-                          Crear cuenta
+                        <Button type="submit" className="mt-1 h-10" disabled={isRegistering}>
+                          {isRegistering ? "Creando cuenta..." : "Crear cuenta"}
                         </Button>
 
                         <p className="text-sm text-muted-foreground">
