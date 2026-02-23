@@ -1,31 +1,14 @@
 import { ReactNode } from "react";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { MedicoDashboardLayout } from "@/src/components/medico/layout/MedicoDashboardLayout";
+import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
 
 export default async function MedicoLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const session = await auth();
+  const { session } = await requireMedicoSession();
+  const doctorName = session.user?.name ?? "Medico";
 
-  // Sin sesión -> login
-  if (!session) {
-    redirect("/credentials");
-  }
-
-  // Con sesión pero rol incorrecto -> redirigir al panel correcto
-  if (session.user?.role !== "medico") {
-    if (session.user?.role === "admin") {
-      redirect("/admin");
-    }
-    redirect("/credentials");
-  }
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Acá podés poner navbar/sidebar del panel médico */}
-      {children}
-    </div>
-  );
+  return <MedicoDashboardLayout userName={doctorName}>{children}</MedicoDashboardLayout>;
 }
