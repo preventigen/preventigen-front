@@ -6,12 +6,12 @@ import { getPacienteById } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
 
 interface AnalisisPacientePageProps {
-  params: {
+   params: Promise<{
     id: string;
-  };
-  searchParams?: {
-    datoMedicoId?: string;
-  };
+  }>;
+  searchParams?: Promise<{
+    datoMedicoId?: string | string[];
+  }>;
 }
 
 function byNewest<T extends { createdAt?: string }>(items: T[]) {
@@ -26,9 +26,13 @@ export default async function AnalisisPacientePage({
   params,
   searchParams,
 }: AnalisisPacientePageProps) {
-  const { token } = await requireMedicoSession();
-  const pacienteId = params.id;
-  const initialDatoMedicoId = searchParams?.datoMedicoId;
+    const { token } = await requireMedicoSession();
+  const { id: pacienteId } = await params;
+
+  const rawDatoMedicoId = (await searchParams)?.datoMedicoId;
+  const initialDatoMedicoId = Array.isArray(rawDatoMedicoId)
+    ? rawDatoMedicoId[0]
+    : rawDatoMedicoId;
 
   const analisisResult = await (async () => {
     try {

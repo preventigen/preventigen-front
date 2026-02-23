@@ -4,14 +4,14 @@ import { getPacienteById } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
 
 interface NuevoDatoMedicoPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function NuevoDatoMedicoPage({ params }: NuevoDatoMedicoPageProps) {
   const { token } = await requireMedicoSession();
-  const pacienteId = params.id;
+  const { id: pacienteId } = await params;
 
   const pacienteResult = await (async () => {
     try {

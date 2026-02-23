@@ -10,16 +10,15 @@ import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
 import { formatDateTime } from "@/src/lib/formatters";
 
 interface AnalisisDetallePageProps {
-  params: {
+  params: Promise<{
     id: string;
     analisisId: string;
-  };
+  }>;
 }
 
 export default async function AnalisisDetallePage({ params }: AnalisisDetallePageProps) {
   const { token } = await requireMedicoSession();
-  const pacienteId = params.id;
-  const analisisId = params.analisisId;
+  const { id: pacienteId, analisisId } = await params;
 
   const analisisResult = await (async () => {
     try {

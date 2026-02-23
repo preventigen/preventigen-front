@@ -9,9 +9,9 @@ import { getPacienteById } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
 
 interface PacienteDetallePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 function byNewest<T extends { createdAt?: string }>(items: T[]) {
@@ -24,7 +24,7 @@ function byNewest<T extends { createdAt?: string }>(items: T[]) {
 
 export default async function PacienteDetallePage({ params }: PacienteDetallePageProps) {
   const { token } = await requireMedicoSession();
-  const pacienteId = params.id;
+  const { id: pacienteId } = await params;
 
   const pacienteResult = await (async () => {
     try {
