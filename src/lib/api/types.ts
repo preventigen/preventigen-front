@@ -55,6 +55,37 @@ export interface GemeloDigital {
   pacienteId: string;
   estado: "pendiente" | "generado" | "error";
   resumen?: string;
+  perfilMedico?: PerfilMedico;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface HabitosVida {
+  tabaquismo: boolean;
+  alcohol?: string;
+  ejercicio?: string;
+  dieta?: string;
+}
+
+export interface SignosVitales {
+  presionArterial?: string;
+  frecuenciaCardiaca?: number;
+  temperatura?: number;
+  saturacionO2?: number;
+}
+
+export interface PerfilMedico {
+  edad?: number;
+  sexo?: string;
+  peso?: number;
+  altura?: number;
+  alergias: string[];
+  enfermedadesCronicas: string[];
+  medicacionActual: string[];
+  antecedentesQuirurgicos: string[];
+  antecedentesFamiliares: string[];
+  habitosVida?: HabitosVida;
+  signosVitales?: SignosVitales;
 }
 
 export interface CreatePacienteDto {
@@ -86,4 +117,9 @@ export interface CreateAnalisisIaDto {
   datoMedicoId?: string;
   tipoPrompt?: TipoPrompt;
   promptUsuario?: string;
+}
+
+export interface CreateGemeloDigitalDto {
+  pacienteId: string;
+  perfilMedico: PerfilMedico;
 }
