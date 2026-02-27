@@ -1,12 +1,17 @@
 import { AnalisisIaHistoryList } from "@/src/components/medico/ia/AnalisisIaHistoryList";
 import { DatosMedicosList } from "@/src/components/medico/datos-medicos/DatosMedicosList";
+import { PacienteGemeloEcammSection } from "@/src/components/medico/pacientes/PacienteGemeloEcammSection";
 import { PacienteHeader } from "@/src/components/medico/pacientes/PacienteHeader";
 import { PacienteSummaryCard } from "@/src/components/medico/pacientes/PacienteSummaryCard";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
 import { listAnalisisIaByPaciente } from "@/src/lib/api/analisis-ia";
+import { listConsultas } from "@/src/lib/api/consultas";
 import { listDatosMedicosByPaciente } from "@/src/lib/api/datos-medicos";
+import { getGemeloDigitalByPacienteId } from "@/src/lib/api/gemelos-digitales";
+import { isApiError } from "@/src/lib/api/http";
 import { getPacienteById } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
+import { redirect } from "next/navigation";
 
 interface PacienteDetallePageProps {
   params: Promise<{
@@ -34,12 +39,57 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
         listAnalisisIaByPaciente(pacienteId, token),
       ]);
 
+      const gemeloDigital = await (async () => {
+        try {
+          return await getGemeloDigitalByPacienteId(pacienteId, token);
+        } catch (error) {
+          if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+            throw error;
+          }
+
+          if (isApiError(error) && error.status === 404) {
+            return null;
+          }
+
+          throw error;
+        }
+      })();
+
+      const consultasResult = await (async () => {
+        try {
+          const consultas = await listConsultas(token);
+          return { consultas, consultasError: null as string | null };
+        } catch (error) {
+          if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+            throw error;
+          }
+
+          return {
+            consultas: [],
+            consultasError: error instanceof Error ? error.message : "Intenta nuevamente.",
+          };
+        }
+      })();
+
+      console.log("Paciente:", paciente);
+      console.log("Datos médicos:", datosMedicos);
+      console.log("Análisis IA:", analisis);
+      console.log("Gemelo digital:", gemeloDigital);
+      console.log("Consultas:", consultasResult.consultas, "Error:", consultasResult.consultasError);
+
       return {
         paciente,
         datosMedicos: byNewest(datosMedicos),
         analisis: byNewest(analisis).slice(0, 10),
+        gemeloDigital,
+        consultas: consultasResult.consultas,
+        consultasError: consultasResult.consultasError,
       };
     } catch (error) {
+      if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+        redirect("/credentials");
+      }
+
       return {
         errorMessage:
           error instanceof Error
@@ -66,6 +116,15 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
 
       <PacienteSummaryCard paciente={pacienteResult.paciente} />
 
+      <PacienteGemeloEcammSection
+        token={token}
+        pacienteId={pacienteResult.paciente.id}
+        gemelo={pacienteResult.gemeloDigital}
+        consultas={pacienteResult.consultas}
+        consultasError={pacienteResult.consultasError}
+        datosMedicos={pacienteResult.datosMedicos}
+      />
+
       <DatosMedicosList pacienteId={pacienteResult.paciente.id} items={pacienteResult.datosMedicos} />
 
       <AnalisisIaHistoryList
@@ -75,4 +134,3 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
     </div>
   );
 }
-

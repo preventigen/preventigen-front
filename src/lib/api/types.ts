@@ -42,12 +42,39 @@ export interface AnalisisIA {
   updatedAt?: string;
 }
 
+export type EstadoConsulta = "borrador" | "confirmada" | "cerrada";
+
 export interface Consulta {
   id: string;
   pacienteId: string;
-  motivo?: string;
-  estado?: string;
-  fecha?: string;
+  medicoId?: string | null;
+  motivo?: string | null;
+  notas?: string | null;
+  recomendacion?: string | null;
+  estado?: EstadoConsulta | null;
+  fecha?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SimulacionEcammResult extends Record<string, unknown> {
+  efectividadEstimada?: number | string;
+  probabilidadExito?: number | string;
+  riesgos?: string[] | string;
+  beneficios?: string[] | string;
+  monitoreoCritico?: string[] | string;
+  recomendaciones?: string[] | string;
+}
+
+export interface SimulacionTratamiento extends Record<string, unknown> {
+  id?: string;
+  gemeloDigitalId?: string;
+  tratamientoPropuesto?: string;
+  dosisYDuracion?: string;
+  analisisIA?: SimulacionEcammResult;
+  prediccionRespuesta?: SimulacionEcammResult;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface GemeloDigital {
@@ -56,6 +83,8 @@ export interface GemeloDigital {
   estado: "pendiente" | "generado" | "error";
   resumen?: string;
   perfilMedico?: PerfilMedico;
+  simulaciones?: SimulacionTratamiento[];
+  ultimaSimulacion?: SimulacionTratamiento | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -122,4 +151,16 @@ export interface CreateAnalisisIaDto {
 export interface CreateGemeloDigitalDto {
   pacienteId: string;
   perfilMedico: PerfilMedico;
+}
+
+export interface SimularTratamientoDto {
+  gemeloDigitalId: string;
+  tratamientoPropuesto: string;
+  dosisYDuracion?: string;
+}
+
+export interface ActualizarGemeloDigitalDto {
+  consultaId: string;
+  cambiosRealizados: string;
+  datosActualizados: Partial<PerfilMedico> & Record<string, unknown>;
 }
