@@ -1,5 +1,7 @@
 export type AppRole = "medico" | "admin";
 
+export type GeneroPaciente = "M" | "F";
+
 export type TipoDatoMedico =
   | "antecedente"
   | "diagnostico"
@@ -10,147 +12,201 @@ export type TipoDatoMedico =
 
 export type TipoPrompt = "usuario" | "sistema";
 
-export interface Paciente {
+export type EstadoConsulta = "borrador" | "confirmada" | "cerrada";
+
+export type GravedadNovedad = "leve" | "moderada" | "grave";
+
+export type EstadoGemeloDigital = "activo" | "desactualizado" | "actualizado";
+
+export interface PacienteBase {
   id: string;
+  medicoId?: string | null;
   nombre: string;
-  edad?: number | null;
-  telefono?: string | null;
-  email?: string | null;
-  alergias: string[];
-  enfermedadesCronicas: string[];
+  apellido: string;
+  fechaNacimiento: string;
+  genero: GeneroPaciente;
+  diagnosticoPrincipal?: string | null;
+  antecedentesMedicos?: string | null;
+  medicacionActual?: string | null;
+  presionArterial?: string | null;
+  comentarios?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface PacienteListado {
+  id: string;
+  nombre: string;
+  apellido: string;
+  fechaNacimiento: string;
+  genero: GeneroPaciente;
 }
 
 export interface DatoMedico {
   id: string;
   pacienteId: string;
-  tipo: TipoDatoMedico;
+  medicoId?: string | null;
   contenido: string;
+  tipo: TipoDatoMedico;
+  fechaCarga?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface EstudioMedico {
+  id: string;
+  pacienteId: string;
+  nombreEstudio: string;
+  fecha?: string | null;
+  observaciones?: string | null;
+  createdAt?: string;
+}
+
+export interface NovedadClinica {
+  id: string;
+  pacienteId: string;
+  tipoEvento?: string | null;
+  descripcion?: string | null;
+  zonaAfectada?: string | null;
+  gravedad?: GravedadNovedad | null;
+  observaciones?: string | null;
+  createdAt?: string;
+}
+
+export interface Consulta {
+  id: string;
+  pacienteId: string;
+  medicoId?: string | null;
+  detalles?: string | null;
+  tratamientoIndicado?: string | null;
+  estado: EstadoConsulta;
+  createdAt?: string;
+  updatedAt?: string;
+  paciente?: PacienteListado | null;
 }
 
 export interface AnalisisIA {
   id: string;
   pacienteId: string;
   datoMedicoId?: string | null;
+  gemeloDigitalId?: string | null;
   tipoPrompt?: TipoPrompt | null;
+  prompt?: string | null;
   promptUsuario?: string | null;
-  respuesta: string;
-  createdAt?: string;
-  updatedAt?: string;
+  respuestaIA: string;
+  resumenContexto?: string | null;
+  fechaGeneracion?: string | null;
+  datoMedico?: DatoMedico | null;
 }
 
-export type EstadoConsulta = "borrador" | "confirmada" | "cerrada";
-
-export interface Consulta {
+export interface ContextoAnalisisIA {
   id: string;
   pacienteId: string;
-  medicoId?: string | null;
-  motivo?: string | null;
-  notas?: string | null;
-  recomendacion?: string | null;
-  estado?: EstadoConsulta | null;
+  registroIA: string;
+  fechaRegistro?: string | null;
+}
+
+export interface HistorialGemeloDigital {
   fecha?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  consultaId?: string | null;
+  cambios?: string | null;
+  datosMedicos?: Record<string, unknown> | null;
 }
 
-export interface SimulacionEcammResult extends Record<string, unknown> {
-  efectividadEstimada?: number | string;
-  probabilidadExito?: number | string;
-  riesgos?: string[] | string;
-  beneficios?: string[] | string;
-  monitoreoCritico?: string[] | string;
-  recomendaciones?: string[] | string;
+export interface SimulacionAnalisisIA {
+  efectividadEstimada?: number | null;
+  riesgos?: string[];
+  beneficios?: string[];
+  contraindicaciones?: string[];
+  interaccionesMedicamentosas?: string[];
+  efectosSecundariosProbables?: string[];
+  recomendaciones?: string[];
+  ajustesDosis?: string | null;
+  monitoreoCritico?: string[];
+  alternativasSugeridas?: Array<{
+    medicamento?: string | null;
+    razon?: string | null;
+  }>;
 }
 
-export interface SimulacionTratamiento extends Record<string, unknown> {
-  id?: string;
-  gemeloDigitalId?: string;
-  tratamientoPropuesto?: string;
-  dosisYDuracion?: string;
-  analisisIA?: SimulacionEcammResult;
-  prediccionRespuesta?: SimulacionEcammResult;
+export interface SimulacionPrediccionRespuesta {
+  tiempoMejoriaEstimado?: string | null;
+  probabilidadExito?: number | null;
+  factoresRiesgo?: string[];
+  parametrosMonitoreo?: string[];
+}
+
+export interface SimulacionTratamiento {
+  id: string;
+  gemeloDigitalId: string;
+  tratamientoPropuesto: string;
+  dosisYDuracion?: string | null;
+  analisisIA?: SimulacionAnalisisIA | null;
+  prediccionRespuesta?: SimulacionPrediccionRespuesta | null;
+  promptEnviado?: string | null;
+  respuestaCompletaIA?: string | null;
+  modeloIAUtilizado?: string | null;
   createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface GemeloDigital {
   id: string;
   pacienteId: string;
-  estado: "pendiente" | "generado" | "error";
-  resumen?: string;
-  perfilMedico?: PerfilMedico;
-  simulaciones?: SimulacionTratamiento[];
-  ultimaSimulacion?: SimulacionTratamiento | null;
+  medicoId?: string | null;
+  historialActualizaciones: HistorialGemeloDigital[];
+  estado: EstadoGemeloDigital;
   createdAt?: string;
   updatedAt?: string;
+  paciente?: PacienteListado | null;
+  simulaciones?: SimulacionTratamiento[];
 }
 
-export interface HabitosVida {
-  tabaquismo: boolean;
-  alcohol?: string;
-  ejercicio?: string;
-  dieta?: string;
-}
-
-export interface SignosVitales {
-  presionArterial?: string;
-  frecuenciaCardiaca?: number;
-  temperatura?: number;
-  saturacionO2?: number;
-}
-
-export interface PerfilMedico {
-  edad?: number;
-  sexo?: string;
-  peso?: number;
-  altura?: number;
-  alergias: string[];
-  enfermedadesCronicas: string[];
-  medicacionActual: string[];
-  antecedentesQuirurgicos: string[];
-  antecedentesFamiliares: string[];
-  habitosVida?: HabitosVida;
-  signosVitales?: SignosVitales;
+export interface PacienteDetalle extends PacienteBase {
+  consultas: Consulta[];
+  estudios: EstudioMedico[];
+  novedades: NovedadClinica[];
 }
 
 export interface CreatePacienteDto {
   nombre: string;
-  edad?: number;
-  telefono?: string;
-  email?: string;
-  alergias?: string[];
-  enfermedadesCronicas?: string[];
+  apellido: string;
+  fechaNacimiento: string;
+  genero: GeneroPaciente;
+  diagnosticoPrincipal?: string;
+  antecedentesMedicos?: string;
+  medicacionActual?: string;
+  presionArterial?: string;
+  comentarios?: string;
 }
 
-export interface UpdatePacienteDto {
+export interface PatchPacienteDatosPersonalesDto {
   nombre?: string;
-  edad?: number;
-  telefono?: string;
-  email?: string;
-  alergias?: string[];
-  enfermedadesCronicas?: string[];
+  apellido?: string;
+  fechaNacimiento?: string;
+  genero?: GeneroPaciente;
+}
+
+export interface PatchPacienteDatosMedicosDto {
+  diagnosticoPrincipal?: string;
+  antecedentesMedicos?: string;
+  medicacionActual?: string;
+  presionArterial?: string;
+  comentarios?: string;
 }
 
 export interface CreateDatoMedicoDto {
   pacienteId: string;
   contenido: string;
-  tipo: TipoDatoMedico;
+  tipo?: TipoDatoMedico;
 }
 
-export interface CreateAnalisisIaDto {
-  pacienteId: string;
-  datoMedicoId?: string;
-  tipoPrompt?: TipoPrompt;
-  promptUsuario?: string;
+export interface UpdateDatoMedicoDto {
+  contenido?: string;
+  tipo?: TipoDatoMedico;
 }
 
 export interface CreateGemeloDigitalDto {
   pacienteId: string;
-  perfilMedico: PerfilMedico;
 }
 
 export interface SimularTratamientoDto {
@@ -162,5 +218,39 @@ export interface SimularTratamientoDto {
 export interface ActualizarGemeloDigitalDto {
   consultaId: string;
   cambiosRealizados: string;
-  datosActualizados: Partial<PerfilMedico> & Record<string, unknown>;
+  datosActualizados: Record<string, unknown>;
+}
+
+export interface CreateEstudioMedicoDto {
+  pacienteId: string;
+  nombreEstudio: string;
+  fecha?: string;
+  observaciones?: string;
+}
+
+export interface CreateNovedadClinicaDto {
+  pacienteId: string;
+  tipoEvento?: string;
+  descripcion?: string;
+  zonaAfectada?: string;
+  gravedad?: GravedadNovedad;
+  observaciones?: string;
+}
+
+export interface CreateConsultaDto {
+  pacienteId: string;
+  detalles?: string;
+  tratamientoIndicado?: string;
+}
+
+export interface UpdateConsultaDto {
+  detalles?: string;
+  tratamientoIndicado?: string;
+}
+
+export interface CreateAnalisisIaDto {
+  pacienteId: string;
+  datoMedicoId?: string;
+  tipoPrompt?: TipoPrompt;
+  promptUsuario?: string;
 }

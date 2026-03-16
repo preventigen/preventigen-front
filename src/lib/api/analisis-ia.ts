@@ -1,39 +1,28 @@
 import { apiRequest } from "@/src/lib/api/http";
-import type {
-  AnalisisIA,
-  CreateAnalisisIaDto,
-  TipoPrompt,
-} from "@/src/lib/api/types";
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object") return null;
-  return value as Record<string, unknown>;
-}
-
-function toStringValue(value: unknown): string | undefined {
-  if (typeof value === "string" && value.trim().length > 0) return value;
-  if (typeof value === "number") return String(value);
-  return undefined;
-}
+import { asRecord, pickArrayCandidate, toOptionalString, toStringValue } from "@/src/lib/api/parsers";
+import type { AnalisisIA, ContextoAnalisisIA, CreateAnalisisIaDto, TipoPrompt } from "@/src/lib/api/types";
 
 function mapTipoPrompt(value: unknown): TipoPrompt | null {
-  if (value === "usuario" || value === "sistema") return value;
-  return null;
+  return value === "sistema" || value === "usuario" ? value : null;
 }
 
 function mapAnalisis(raw: unknown): AnalisisIA {
   const record = asRecord(raw);
-  if (!record) throw new Error("Analisis IA invalido recibido desde backend.");
+  if (!record) {
+    throw new Error("Analisis IA invalido recibido desde backend.");
+  }
 
   return {
     id: toStringValue(record.id) ?? "",
     pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
-    datoMedicoId: toStringValue(record.datoMedicoId ?? record.dato_medico_id) ?? null,
+    datoMedicoId: toOptionalString(record.datoMedicoId ?? record.dato_medico_id),
+    gemeloDigitalId: toOptionalString(record.gemeloDigitalId ?? record.gemelo_digital_id),
     tipoPrompt: mapTipoPrompt(record.tipoPrompt ?? record.tipo_prompt),
-    promptUsuario: toStringValue(record.promptUsuario ?? record.prompt_usuario) ?? null,
-    respuesta: toStringValue(record.respuesta ?? record.resultado ?? record.response) ?? "",
-    createdAt: toStringValue(record.createdAt ?? record.created_at),
-    updatedAt: toStringValue(record.updatedAt ?? record.updated_at),
+    prompt: toOptionalString(record.prompt),
+    promptUsuario: toOptionalString(record.promptUsuario ?? record.prompt_usuario),
+    respuestaIA: toStringValue(record.respuestaIA ?? record.respuesta_ia) ?? "",
+    resumenContexto: toOptionalString(record.resumenContexto ?? record.resumen_contexto),
+    fechaGeneracion: toOptionalString(record.fechaGeneracion ?? record.fecha_generacion),
   };
 }
 
@@ -45,33 +34,31 @@ function mapAnalisisCollection(payload: unknown): AnalisisIA[] {
   const record = asRecord(payload);
   if (!record) return [];
 
-  const candidates = [
-    record.analisis,
-    record.analisisIa,
-    record.analisis_ia,
-    record.items,
-    record.results,
-    record.data,
-  ].find(Array.isArray);
-
-  if (Array.isArray(candidates)) {
-    return candidates.map(mapAnalisis);
-  }
-
-  return [];
+  return pickArrayCandidate(record, ["analisis", "analisisIa", "items", "results", "data"]).map(
+    mapAnalisis
+  );
 }
 
-export async function listAnalisisIaByPaciente(
-  pacienteId: string,
+function cleanPayload<T extends object>(payload: T): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined && value !== "")
+  );
+}
+
+export async function createAnalisis(
+  dto: CreateAnalisisIaDto,
   token: string
-): Promise<AnalisisIA[]> {
-  const payload = await apiRequest<unknown>(`/analisis-ia/paciente/${pacienteId}`, {
+): Promise<AnalisisIA> {
+  const payload = await apiRequest<unknown, Record<string, unknown>>("/analisis-ia", {
+    method: "POST",
     token,
+    body: cleanPayload(dto),
   });
-  return mapAnalisisCollection(payload);
+
+  return mapAnalisis(payload);
 }
 
-export async function getUltimoAnalisisIaByPaciente(
+export async function getUltimoAnalisis(
   pacienteId: string,
   token: string
 ): Promise<AnalisisIA | null> {
@@ -85,19 +72,35 @@ export async function getUltimoAnalisisIaByPaciente(
   }
 }
 
-export async function createAnalisisIa(
-  dto: CreateAnalisisIaDto,
+export async function listAnalisisByPaciente(
+  pacienteId: string,
   token: string
-): Promise<AnalisisIA> {
-  const payload = await apiRequest<unknown, CreateAnalisisIaDto>("/analisis-ia", {
-    method: "POST",
+): Promise<AnalisisIA[]> {
+  const payload = await apiRequest<unknown>(`/analisis-ia/paciente/${pacienteId}`, {
     token,
-    body: dto,
   });
-  return mapAnalisis(payload);
+  return mapAnalisisCollection(payload);
 }
 
-export async function getAnalisisIaById(analisisId: string, token: string): Promise<AnalisisIA> {
-  const payload = await apiRequest<unknown>(`/analisis-ia/${analisisId}`, { token });
-  return mapAnalisis(payload);
+export async function getContexto(
+  pacienteId: string,
+  token: string
+): Promise<ContextoAnalisisIA | null> {
+  const payload = await apiRequest<unknown>(`/analisis-ia/paciente/${pacienteId}/contexto`, {
+    token,
+  });
+
+  if (payload === null) return null;
+
+  const record = asRecord(payload);
+  if (!record) {
+    throw new Error("Contexto IA invalido recibido desde backend.");
+  }
+
+  return {
+    id: toStringValue(record.id) ?? "",
+    pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
+    registroIA: toStringValue(record.registroIA ?? record.registro_ia) ?? "",
+    fechaRegistro: toOptionalString(record.fechaRegistro ?? record.fecha_registro),
+  };
 }

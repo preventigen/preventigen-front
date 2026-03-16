@@ -1,249 +1,142 @@
 import { apiRequest } from "@/src/lib/api/http";
+import { asRecord, pickArrayCandidate, toArray, toNumberValue, toOptionalString, toStringArray, toStringValue } from "@/src/lib/api/parsers";
 import type {
   ActualizarGemeloDigitalDto,
   CreateGemeloDigitalDto,
   GemeloDigital,
-  PerfilMedico,
-  SimulacionEcammResult,
+  HistorialGemeloDigital,
+  SimulacionAnalisisIA,
+  SimulacionPrediccionRespuesta,
   SimulacionTratamiento,
   SimularTratamientoDto,
 } from "@/src/lib/api/types";
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object") return null;
-  return value as Record<string, unknown>;
-}
-
-function toStringValue(value: unknown): string | undefined {
-  if (typeof value === "string" && value.trim().length > 0) return value;
-  if (typeof value === "number") return String(value);
-  return undefined;
-}
-
-function toNumberValue(value: unknown): number | undefined {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return undefined;
-}
-
-function toBooleanValue(value: unknown): boolean | undefined {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value !== 0;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === "true" || normalized === "1") return true;
-    if (normalized === "false" || normalized === "0") return false;
-  }
-  return undefined;
-}
-
-function toStringArray(value: unknown): string[] {
-  if (!value) return [];
-
-  if (Array.isArray(value)) {
-    return value
-      .map((entry) => (typeof entry === "string" ? entry.trim() : String(entry)))
-      .filter(Boolean);
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
-function toStringOrStringArray(value: unknown): string | string[] | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (Array.isArray(value)) return toStringArray(value);
-
-  const stringValue = toStringValue(value);
-  if (stringValue !== undefined) return stringValue;
-  return undefined;
-}
-
-function mapPerfilMedico(raw: unknown): PerfilMedico | undefined {
-  const record = asRecord(raw);
-  if (!record) return undefined;
-
-  return {
-    edad: toNumberValue(record.edad),
-    sexo: toStringValue(record.sexo),
-    peso: toNumberValue(record.peso),
-    altura: toNumberValue(record.altura),
-    alergias: toStringArray(record.alergias),
-    enfermedadesCronicas: toStringArray(record.enfermedadesCronicas),
-    medicacionActual: toStringArray(record.medicacionActual),
-    antecedentesQuirurgicos: toStringArray(record.antecedentesQuirurgicos),
-    antecedentesFamiliares: toStringArray(record.antecedentesFamiliares),
-    habitosVida: asRecord(record.habitosVida)
-      ? {
-          tabaquismo: toBooleanValue(asRecord(record.habitosVida)?.tabaquismo) ?? false,
-          alcohol: toStringValue(asRecord(record.habitosVida)?.alcohol),
-          ejercicio: toStringValue(asRecord(record.habitosVida)?.ejercicio),
-          dieta: toStringValue(asRecord(record.habitosVida)?.dieta),
-        }
-      : undefined,
-    signosVitales: asRecord(record.signosVitales)
-      ? {
-          presionArterial: toStringValue(asRecord(record.signosVitales)?.presionArterial),
-          frecuenciaCardiaca: toNumberValue(asRecord(record.signosVitales)?.frecuenciaCardiaca),
-          temperatura: toNumberValue(asRecord(record.signosVitales)?.temperatura),
-          saturacionO2: toNumberValue(asRecord(record.signosVitales)?.saturacionO2),
-        }
-      : undefined,
-  };
-}
-
-function mapSimulacionEcammResult(raw: unknown): SimulacionEcammResult | undefined {
-  const record = asRecord(raw);
-  if (!record) return undefined;
-
-  return {
-    ...record,
-    efectividadEstimada:
-      toNumberValue(record.efectividadEstimada ?? record.efectividad_estimada) ??
-      toStringValue(record.efectividadEstimada ?? record.efectividad_estimada),
-    probabilidadExito:
-      toNumberValue(record.probabilidadExito ?? record.probabilidad_exito) ??
-      toStringValue(record.probabilidadExito ?? record.probabilidad_exito),
-    riesgos: toStringOrStringArray(record.riesgos),
-    beneficios: toStringOrStringArray(record.beneficios),
-    monitoreoCritico: toStringOrStringArray(
-      record.monitoreoCritico ?? record.monitoreo_critico
-    ),
-    recomendaciones: toStringOrStringArray(record.recomendaciones),
-  };
-}
-
-function mapSimulacionTratamiento(raw: unknown): SimulacionTratamiento {
+function mapHistorialItem(raw: unknown): HistorialGemeloDigital {
   const record = asRecord(raw);
   if (!record) {
-    throw new Error("Simulacion de tratamiento invalida recibida desde backend.");
+    return {};
   }
 
   return {
-    ...record,
-    id: toStringValue(record.id),
-    gemeloDigitalId: toStringValue(record.gemeloDigitalId ?? record.gemelo_digital_id),
-    tratamientoPropuesto: toStringValue(
-      record.tratamientoPropuesto ?? record.tratamiento_propuesto
-    ),
-    dosisYDuracion: toStringValue(record.dosisYDuracion ?? record.dosis_y_duracion),
-    analisisIA: mapSimulacionEcammResult(record.analisisIA ?? record.analisis_ia),
-    prediccionRespuesta: mapSimulacionEcammResult(
-      record.prediccionRespuesta ?? record.prediccion_respuesta
-    ),
-    createdAt: toStringValue(record.createdAt ?? record.created_at),
-    updatedAt: toStringValue(record.updatedAt ?? record.updated_at),
+    fecha: toOptionalString(record.fecha),
+    consultaId: toOptionalString(record.consultaId ?? record.consulta_id),
+    cambios: toOptionalString(record.cambios),
+    datosMedicos: asRecord(record.datosMedicos ?? record.datos_medicos),
   };
 }
 
-function mapSimulacionesCollection(raw: unknown): SimulacionTratamiento[] {
-  if (Array.isArray(raw)) {
-    return raw.map(mapSimulacionTratamiento);
-  }
-
+function mapAnalisisIA(raw: unknown): SimulacionAnalisisIA | null {
   const record = asRecord(raw);
-  if (!record) return [];
+  if (!record) return null;
 
-  const candidates = [
-    record.simulaciones,
-    record.simulacionesTratamiento,
-    record.simulaciones_tratamiento,
-    record.items,
-    record.results,
-    record.data,
-  ].find(Array.isArray);
-
-  if (Array.isArray(candidates)) {
-    return candidates.map(mapSimulacionTratamiento);
-  }
-
-  return [];
+  return {
+    efectividadEstimada: toNumberValue(record.efectividadEstimada ?? record.efectividad_estimada) ?? null,
+    riesgos: toStringArray(record.riesgos),
+    beneficios: toStringArray(record.beneficios),
+    contraindicaciones: toStringArray(record.contraindicaciones),
+    interaccionesMedicamentosas: toStringArray(
+      record.interaccionesMedicamentosas ?? record.interacciones_medicamentosas
+    ),
+    efectosSecundariosProbables: toStringArray(
+      record.efectosSecundariosProbables ?? record.efectos_secundarios_probables
+    ),
+    recomendaciones: toStringArray(record.recomendaciones),
+    ajustesDosis: toOptionalString(record.ajustesDosis ?? record.ajustes_dosis),
+    monitoreoCritico: toStringArray(record.monitoreoCritico ?? record.monitoreo_critico),
+    alternativasSugeridas: Array.isArray(record.alternativasSugeridas)
+      ? record.alternativasSugeridas.map((item) => {
+          const alternative = asRecord(item);
+          return {
+            medicamento: toOptionalString(alternative?.medicamento),
+            razon: toOptionalString(alternative?.razon),
+          };
+        })
+      : undefined,
+  };
 }
 
-function getLatestSimulacion(
-  simulaciones: SimulacionTratamiento[],
-  rawUltimaSimulacion: unknown
-): SimulacionTratamiento | null {
-  if (rawUltimaSimulacion) {
-    try {
-      return mapSimulacionTratamiento(rawUltimaSimulacion);
-    } catch {
-      return null;
-    }
-  }
+function mapPrediccion(raw: unknown): SimulacionPrediccionRespuesta | null {
+  const record = asRecord(raw);
+  if (!record) return null;
 
-  if (simulaciones.length === 0) return null;
-
-  return [...simulaciones].sort((a, b) => {
-    const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return bTime - aTime;
-  })[0];
+  return {
+    tiempoMejoriaEstimado: toOptionalString(
+      record.tiempoMejoriaEstimado ?? record.tiempo_mejoria_estimado
+    ),
+    probabilidadExito: toNumberValue(record.probabilidadExito ?? record.probabilidad_exito) ?? null,
+    factoresRiesgo: toStringArray(record.factoresRiesgo ?? record.factores_riesgo),
+    parametrosMonitoreo: toStringArray(
+      record.parametrosMonitoreo ?? record.parametros_monitoreo
+    ),
+  };
 }
 
-function mapGemeloDigital(raw: unknown): GemeloDigital {
+function mapSimulacion(raw: unknown): SimulacionTratamiento {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Simulacion invalida recibida desde backend.");
+  }
+
+  return {
+    id: toStringValue(record.id) ?? "",
+    gemeloDigitalId: toStringValue(record.gemeloDigitalId ?? record.gemelo_digital_id) ?? "",
+    tratamientoPropuesto: toStringValue(
+      record.tratamientoPropuesto ?? record.tratamiento_propuesto
+    ) ?? "",
+    dosisYDuracion: toOptionalString(record.dosisYDuracion ?? record.dosis_y_duracion),
+    analisisIA: mapAnalisisIA(record.analisisIA ?? record.analisis_ia),
+    prediccionRespuesta: mapPrediccion(
+      record.prediccionRespuesta ?? record.prediccion_respuesta
+    ),
+    promptEnviado: toOptionalString(record.promptEnviado ?? record.prompt_enviado),
+    respuestaCompletaIA: toOptionalString(
+      record.respuestaCompletaIA ?? record.respuesta_completa_ia
+    ),
+    modeloIAUtilizado: toOptionalString(record.modeloIAUtilizado ?? record.modelo_ia_utilizado),
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+  };
+}
+
+function mapGemelo(raw: unknown): GemeloDigital {
   const record = asRecord(raw);
   if (!record) {
     throw new Error("Gemelo digital invalido recibido desde backend.");
   }
 
-  const estado = toStringValue(record.estado);
-  const simulaciones = mapSimulacionesCollection(
-    record.simulaciones ??
-      record.simulacionesTratamiento ??
-      record.simulaciones_tratamiento
-  );
+  const estado = record.estado;
 
   return {
     id: toStringValue(record.id) ?? "",
     pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
-    estado: estado === "generado" || estado === "error" || estado === "pendiente" ? estado : "pendiente",
-    resumen: toStringValue(record.resumen),
-    perfilMedico: mapPerfilMedico(record.perfilMedico ?? record.perfil_medico),
-    simulaciones,
-    ultimaSimulacion: getLatestSimulacion(
-      simulaciones,
-      record.ultimaSimulacion ?? record.ultima_simulacion
+    medicoId: toOptionalString(record.medicoId ?? record.medico_id),
+    historialActualizaciones: toArray(
+      record.historialActualizaciones ?? record.historial_actualizaciones,
+      mapHistorialItem
     ),
-    createdAt: toStringValue(record.createdAt ?? record.created_at),
-    updatedAt: toStringValue(record.updatedAt ?? record.updated_at),
+    estado:
+      estado === "activo" || estado === "desactualizado" || estado === "actualizado"
+        ? estado
+        : "actualizado",
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+    updatedAt: toOptionalString(record.updatedAt ?? record.updated_at) ?? undefined,
+    simulaciones: toArray(record.simulaciones, mapSimulacion),
   };
 }
 
-function extractGemeloPayload(raw: unknown): unknown {
-  const record = asRecord(raw);
-  if (!record) return raw;
+function mapSimulacionesCollection(payload: unknown): SimulacionTratamiento[] {
+  if (Array.isArray(payload)) {
+    return payload.map(mapSimulacion);
+  }
 
-  return (
-    record.gemeloDigital ??
-    record.gemelo_digital ??
-    record.gemelo ??
-    record.resultado ??
-    record.result ??
-    raw
-  );
+  const record = asRecord(payload);
+  if (!record) return [];
+
+  return pickArrayCandidate(record, ["simulaciones", "items", "results", "data"]).map(mapSimulacion);
 }
 
-function extractSimulacionPayload(raw: unknown): unknown {
-  const record = asRecord(raw);
-  if (!record) return raw;
-
-  return (
-    record.simulacion ??
-    record.simulacionTratamiento ??
-    record.simulacion_tratamiento ??
-    record.resultado ??
-    record.result ??
-    raw
+function cleanPayload<T extends object>(payload: T): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined && value !== "")
   );
 }
 
@@ -251,16 +144,16 @@ export async function createGemeloDigital(
   dto: CreateGemeloDigitalDto,
   token: string
 ): Promise<GemeloDigital> {
-  const payload = await apiRequest<unknown, CreateGemeloDigitalDto>("/gemelos-digitales", {
+  const payload = await apiRequest<unknown, Record<string, unknown>>("/gemelos-digitales", {
     method: "POST",
     token,
-    body: dto,
+    body: cleanPayload(dto),
   });
 
-  return mapGemeloDigital(extractGemeloPayload(payload));
+  return mapGemelo(payload);
 }
 
-export async function getGemeloDigitalByPacienteId(
+export async function getGemeloByPaciente(
   pacienteId: string,
   token: string
 ): Promise<GemeloDigital> {
@@ -268,35 +161,46 @@ export async function getGemeloDigitalByPacienteId(
     token,
   });
 
-  return mapGemeloDigital(extractGemeloPayload(payload));
+  return mapGemelo(payload);
 }
 
-export async function simularTratamientoGemelo(
+export async function simularTratamiento(
   dto: SimularTratamientoDto,
   token: string
 ): Promise<SimulacionTratamiento> {
-  const payload = await apiRequest<unknown, SimularTratamientoDto>("/gemelos-digitales/simular", {
+  const payload = await apiRequest<unknown, Record<string, unknown>>("/gemelos-digitales/simular", {
     method: "POST",
     token,
-    body: dto,
+    body: cleanPayload(dto),
   });
-  console.log("Payload recibido de simulacion de tratamiento:", payload);
-  return mapSimulacionTratamiento(extractSimulacionPayload(payload));
+
+  return mapSimulacion(payload);
 }
 
-export async function actualizarGemeloDigital(
+export async function listSimulaciones(
+  gemeloDigitalId: string,
+  token: string
+): Promise<SimulacionTratamiento[]> {
+  const payload = await apiRequest<unknown>(`/gemelos-digitales/${gemeloDigitalId}/simulaciones`, {
+    token,
+  });
+
+  return mapSimulacionesCollection(payload);
+}
+
+export async function actualizarGemelo(
   id: string,
   dto: ActualizarGemeloDigitalDto,
   token: string
 ): Promise<GemeloDigital> {
-  const payload = await apiRequest<unknown, ActualizarGemeloDigitalDto>(
+  const payload = await apiRequest<unknown, Record<string, unknown>>(
     `/gemelos-digitales/${id}/actualizar`,
     {
       method: "PATCH",
       token,
-      body: dto,
+      body: cleanPayload(dto),
     }
   );
 
-  return mapGemeloDigital(extractGemeloPayload(payload));
+  return mapGemelo(payload);
 }

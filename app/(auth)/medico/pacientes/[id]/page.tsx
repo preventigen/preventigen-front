@@ -1,16 +1,17 @@
-import { AnalisisIaHistoryList } from "@/src/components/medico/ia/AnalisisIaHistoryList";
-import { DatosMedicosList } from "@/src/components/medico/datos-medicos/DatosMedicosList";
-import { PacienteGemeloEcammSection } from "@/src/components/medico/pacientes/PacienteGemeloEcammSection";
+import { PacienteDetailClient } from "@/src/components/medico/pacientes/PacienteDetailClient";
 import { PacienteHeader } from "@/src/components/medico/pacientes/PacienteHeader";
 import { PacienteSummaryCard } from "@/src/components/medico/pacientes/PacienteSummaryCard";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
-import { listAnalisisIaByPaciente } from "@/src/lib/api/analisis-ia";
-import { listConsultas } from "@/src/lib/api/consultas";
+import { getContexto, getUltimoAnalisis } from "@/src/lib/api/analisis-ia";
+import { listConsultasByPaciente } from "@/src/lib/api/consultas";
 import { listDatosMedicosByPaciente } from "@/src/lib/api/datos-medicos";
-import { getGemeloDigitalByPacienteId } from "@/src/lib/api/gemelos-digitales";
+import { listEstudiosByPaciente } from "@/src/lib/api/estudios-medicos";
+import { getGemeloByPaciente, listSimulaciones } from "@/src/lib/api/gemelos-digitales";
 import { isApiError } from "@/src/lib/api/http";
+import { listNovedadesByPaciente } from "@/src/lib/api/novedades-clinicas";
 import { getPacienteById } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
+import type { GemeloDigital, SimulacionTratamiento } from "@/src/lib/api/types";
 import { redirect } from "next/navigation";
 
 interface PacienteDetallePageProps {
@@ -19,12 +20,41 @@ interface PacienteDetallePageProps {
   }>;
 }
 
-function byNewest<T extends { createdAt?: string }>(items: T[]) {
+function sortByNewest<T extends { createdAt?: string }>(items: T[]) {
   return [...items].sort((a, b) => {
     const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return bTime - aTime;
   });
+}
+
+async function getGemeloData(
+  pacienteId: string,
+  token: string
+): Promise<{ gemelo: GemeloDigital | null; ultimaSimulacion: SimulacionTratamiento | null }> {
+  try {
+    const gemelo = await getGemeloByPaciente(pacienteId, token);
+
+    try {
+      const simulaciones = await listSimulaciones(gemelo.id, token);
+      return {
+        gemelo,
+        ultimaSimulacion: sortByNewest(simulaciones)[0] ?? null,
+      };
+    } catch (error) {
+      if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+        throw error;
+      }
+
+      return { gemelo, ultimaSimulacion: null };
+    }
+  } catch (error) {
+    if (isApiError(error) && error.status === 404) {
+      return { gemelo: null, ultimaSimulacion: null };
+    }
+
+    throw error;
+  }
 }
 
 export default async function PacienteDetallePage({ params }: PacienteDetallePageProps) {
@@ -33,57 +63,36 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
 
   const pacienteResult = await (async () => {
     try {
-      const [paciente, datosMedicos, analisis] = await Promise.all([
+      const [
+        paciente,
+        datosMedicos,
+        consultas,
+        estudios,
+        novedades,
+        ultimoAnalisis,
+        contextoIa,
+        gemeloData,
+      ] = await Promise.all([
         getPacienteById(pacienteId, token),
         listDatosMedicosByPaciente(pacienteId, token),
-        listAnalisisIaByPaciente(pacienteId, token),
+        listConsultasByPaciente(pacienteId, token),
+        listEstudiosByPaciente(pacienteId, token),
+        listNovedadesByPaciente(pacienteId, token),
+        getUltimoAnalisis(pacienteId, token),
+        getContexto(pacienteId, token),
+        getGemeloData(pacienteId, token),
       ]);
-
-      const gemeloDigital = await (async () => {
-        try {
-          return await getGemeloDigitalByPacienteId(pacienteId, token);
-        } catch (error) {
-          if (isApiError(error) && (error.status === 401 || error.status === 403)) {
-            throw error;
-          }
-
-          if (isApiError(error) && error.status === 404) {
-            return null;
-          }
-
-          throw error;
-        }
-      })();
-
-      const consultasResult = await (async () => {
-        try {
-          const consultas = await listConsultas(token);
-          return { consultas, consultasError: null as string | null };
-        } catch (error) {
-          if (isApiError(error) && (error.status === 401 || error.status === 403)) {
-            throw error;
-          }
-
-          return {
-            consultas: [],
-            consultasError: error instanceof Error ? error.message : "Intenta nuevamente.",
-          };
-        }
-      })();
-
-      console.log("Paciente:", paciente);
-      console.log("Datos médicos:", datosMedicos);
-      console.log("Análisis IA:", analisis);
-      console.log("Gemelo digital:", gemeloDigital);
-      console.log("Consultas:", consultasResult.consultas, "Error:", consultasResult.consultasError);
 
       return {
         paciente,
-        datosMedicos: byNewest(datosMedicos),
-        analisis: byNewest(analisis).slice(0, 10),
-        gemeloDigital,
-        consultas: consultasResult.consultas,
-        consultasError: consultasResult.consultasError,
+        datosMedicos,
+        consultas,
+        estudios,
+        novedades,
+        ultimoAnalisis,
+        contextoIa,
+        gemelo: gemeloData.gemelo,
+        ultimaSimulacion: gemeloData.ultimaSimulacion,
       };
     } catch (error) {
       if (isApiError(error) && (error.status === 401 || error.status === 403)) {
@@ -94,7 +103,7 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
         errorMessage:
           error instanceof Error
             ? error.message
-            : "Verifica si el paciente existe e intenta de nuevo.",
+            : "Verifica si el paciente existe e intenta nuevamente.",
       };
     }
   })();
@@ -102,7 +111,7 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
   if ("errorMessage" in pacienteResult) {
     return (
       <ErrorState
-        title="No se pudo cargar el detalle del paciente"
+        title="No se pudo cargar la ficha del paciente"
         description={pacienteResult.errorMessage ?? "Intenta nuevamente."}
         actionLabel="Volver al listado"
         actionHref="/medico/pacientes"
@@ -110,26 +119,23 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
     );
   }
 
+  const nombreCompleto = `${pacienteResult.paciente.nombre} ${pacienteResult.paciente.apellido}`.trim();
+
   return (
     <div className="space-y-6">
-      <PacienteHeader pacienteId={pacienteResult.paciente.id} nombre={pacienteResult.paciente.nombre} />
-
+      <PacienteHeader pacienteId={pacienteResult.paciente.id} nombreCompleto={nombreCompleto} />
       <PacienteSummaryCard paciente={pacienteResult.paciente} />
-
-      <PacienteGemeloEcammSection
+      <PacienteDetailClient
         token={token}
-        pacienteId={pacienteResult.paciente.id}
-        gemelo={pacienteResult.gemeloDigital}
-        consultas={pacienteResult.consultas}
-        consultasError={pacienteResult.consultasError}
-        datosMedicos={pacienteResult.datosMedicos}
-      />
-
-      <DatosMedicosList pacienteId={pacienteResult.paciente.id} items={pacienteResult.datosMedicos} />
-
-      <AnalisisIaHistoryList
-        pacienteId={pacienteResult.paciente.id}
-        items={pacienteResult.analisis}
+        paciente={pacienteResult.paciente}
+        initialDatosMedicos={pacienteResult.datosMedicos}
+        initialConsultas={pacienteResult.consultas}
+        initialEstudios={pacienteResult.estudios}
+        initialNovedades={pacienteResult.novedades}
+        initialUltimoAnalisis={pacienteResult.ultimoAnalisis}
+        initialContextoIa={pacienteResult.contextoIa}
+        initialGemelo={pacienteResult.gemelo}
+        initialUltimaSimulacion={pacienteResult.ultimaSimulacion}
       />
     </div>
   );

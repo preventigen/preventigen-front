@@ -1,4 +1,4 @@
-import { PacienteForm } from "@/src/components/medico/pacientes/PacienteForm";
+import { NuevoPacienteWizard } from "@/src/components/medico/pacientes/NuevoPacienteWizard";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
 
 export default async function NuevoPacientePage() {
@@ -9,11 +9,11 @@ export default async function NuevoPacientePage() {
       <div>
         <h1 className="text-2xl font-semibold text-heading">Nuevo paciente</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Completa los datos para dar de alta un paciente en PreventiGen.
+          Sigue el wizard para crear paciente, gemelo digital y estudios opcionales.
         </p>
       </div>
 
-      <PacienteForm mode="create" token={token} cancelHref="/medico/pacientes" />
+      <NuevoPacienteWizard token={token} />
     </div>
   );
 }

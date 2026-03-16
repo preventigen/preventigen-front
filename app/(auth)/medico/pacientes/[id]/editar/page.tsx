@@ -1,7 +1,9 @@
-import { PacienteForm } from "@/src/components/medico/pacientes/PacienteForm";
+import { PacienteEditForm } from "@/src/components/medico/pacientes/PacienteEditForm";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
+import { isApiError } from "@/src/lib/api/http";
 import { getPacienteById } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
+import { redirect } from "next/navigation";
 
 interface EditarPacientePageProps {
   params: Promise<{
@@ -18,6 +20,10 @@ export default async function EditarPacientePage({ params }: EditarPacientePageP
       const paciente = await getPacienteById(pacienteId, token);
       return { paciente };
     } catch (error) {
+      if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+        redirect("/credentials");
+      }
+
       return {
         errorMessage: error instanceof Error ? error.message : "Intenta nuevamente.",
       };
@@ -44,13 +50,7 @@ export default async function EditarPacientePage({ params }: EditarPacientePageP
         </p>
       </div>
 
-      <PacienteForm
-        mode="edit"
-        token={token}
-        initialPaciente={pacienteResult.paciente}
-        cancelHref={`/medico/pacientes/${pacienteId}`}
-      />
+      <PacienteEditForm token={token} paciente={pacienteResult.paciente} />
     </div>
   );
 }
-

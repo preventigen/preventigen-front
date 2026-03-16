@@ -1,147 +1,216 @@
 import { apiRequest } from "@/src/lib/api/http";
+import { asRecord, pickArrayCandidate, toArray, toOptionalString, toStringValue } from "@/src/lib/api/parsers";
 import type {
+  Consulta,
   CreatePacienteDto,
-  Paciente,
-  UpdatePacienteDto,
+  EstudioMedico,
+  GeneroPaciente,
+  NovedadClinica,
+  PacienteBase,
+  PacienteDetalle,
+  PacienteListado,
+  PatchPacienteDatosMedicosDto,
+  PatchPacienteDatosPersonalesDto,
 } from "@/src/lib/api/types";
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object") return null;
-  return value as Record<string, unknown>;
+function mapGenero(value: unknown): GeneroPaciente {
+  return value === "F" ? "F" : "M";
 }
 
-function toStringValue(value: unknown): string | undefined {
-  if (typeof value === "string" && value.trim().length > 0) return value;
-  if (typeof value === "number") return String(value);
-  return undefined;
-}
-
-function toNumberValue(value: unknown): number | undefined {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return undefined;
-}
-
-function toStringArray(value: unknown): string[] {
-  if (!value) return [];
-
-  if (Array.isArray(value)) {
-    return value
-      .map((entry) => (typeof entry === "string" ? entry.trim() : String(entry)))
-      .filter(Boolean);
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
-function mapPaciente(raw: unknown): Paciente {
+function mapPacienteListado(raw: unknown): PacienteListado {
   const record = asRecord(raw);
   if (!record) {
     throw new Error("Paciente invalido recibido desde backend.");
   }
 
-  const id = toStringValue(record.id) ?? "";
-  const nombre = toStringValue(record.nombre) ?? "Paciente sin nombre";
-
   return {
-    id,
-    nombre,
-    edad: toNumberValue(record.edad) ?? null,
-    telefono: toStringValue(record.telefono) ?? null,
-    email: toStringValue(record.email) ?? null,
-    alergias: toStringArray(record.alergias),
-    enfermedadesCronicas: toStringArray(
-      record.enfermedadesCronicas ?? record.enfermedades_cronicas
-    ),
-    createdAt: toStringValue(record.createdAt ?? record.created_at),
-    updatedAt: toStringValue(record.updatedAt ?? record.updated_at),
+    id: toStringValue(record.id) ?? "",
+    nombre: toStringValue(record.nombre) ?? "",
+    apellido: toStringValue(record.apellido) ?? "",
+    fechaNacimiento: toStringValue(record.fechaNacimiento ?? record.fecha_nacimiento) ?? "",
+    genero: mapGenero(record.genero),
   };
 }
 
-function mapPacientesCollection(payload: unknown): Paciente[] {
+function mapConsulta(raw: unknown): Consulta {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Consulta invalida recibida desde backend.");
+  }
+
+  return {
+    id: toStringValue(record.id) ?? "",
+    pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
+    medicoId: toOptionalString(record.medicoId ?? record.medico_id),
+    detalles: toOptionalString(record.detalles),
+    tratamientoIndicado: toOptionalString(
+      record.tratamientoIndicado ?? record.tratamiento_indicado
+    ),
+    estado: record.estado === "cerrada" || record.estado === "confirmada" ? record.estado : "borrador",
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+    updatedAt: toOptionalString(record.updatedAt ?? record.updated_at) ?? undefined,
+  };
+}
+
+function mapEstudio(raw: unknown): EstudioMedico {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Estudio medico invalido recibido desde backend.");
+  }
+
+  return {
+    id: toStringValue(record.id) ?? "",
+    pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
+    nombreEstudio: toStringValue(record.nombreEstudio ?? record.nombre_estudio) ?? "",
+    fecha: toOptionalString(record.fecha),
+    observaciones: toOptionalString(record.observaciones),
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+  };
+}
+
+function mapNovedad(raw: unknown): NovedadClinica {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Novedad clinica invalida recibida desde backend.");
+  }
+
+  const gravedad = record.gravedad;
+
+  return {
+    id: toStringValue(record.id) ?? "",
+    pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
+    tipoEvento: toOptionalString(record.tipoEvento ?? record.tipo_evento),
+    descripcion: toOptionalString(record.descripcion),
+    zonaAfectada: toOptionalString(record.zonaAfectada ?? record.zona_afectada),
+    gravedad:
+      gravedad === "leve" || gravedad === "moderada" || gravedad === "grave" ? gravedad : null,
+    observaciones: toOptionalString(record.observaciones),
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+  };
+}
+
+function mapPacienteBase(raw: unknown): PacienteBase {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Paciente invalido recibido desde backend.");
+  }
+
+  return {
+    id: toStringValue(record.id) ?? "",
+    medicoId: toOptionalString(record.medicoId ?? record.medico_id),
+    nombre: toStringValue(record.nombre) ?? "",
+    apellido: toStringValue(record.apellido) ?? "",
+    fechaNacimiento: toStringValue(record.fechaNacimiento ?? record.fecha_nacimiento) ?? "",
+    genero: mapGenero(record.genero),
+    diagnosticoPrincipal: toOptionalString(
+      record.diagnosticoPrincipal ?? record.diagnostico_principal
+    ),
+    antecedentesMedicos: toOptionalString(
+      record.antecedentesMedicos ?? record.antecedentes_medicos
+    ),
+    medicacionActual: toOptionalString(record.medicacionActual ?? record.medicacion_actual),
+    presionArterial: toOptionalString(record.presionArterial ?? record.presion_arterial),
+    comentarios: toOptionalString(record.comentarios),
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+    updatedAt: toOptionalString(record.updatedAt ?? record.updated_at) ?? undefined,
+  };
+}
+
+function mapPacienteDetalle(raw: unknown): PacienteDetalle {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Paciente invalido recibido desde backend.");
+  }
+
+  return {
+    ...mapPacienteBase(raw),
+    consultas: toArray(record.consultas, mapConsulta),
+    estudios: toArray(record.estudios, mapEstudio),
+    novedades: toArray(record.novedades, mapNovedad),
+  };
+}
+
+function mapPacientesCollection(payload: unknown): PacienteListado[] {
   if (Array.isArray(payload)) {
-    return payload.map(mapPaciente);
+    return payload.map(mapPacienteListado);
   }
 
   const record = asRecord(payload);
   if (!record) return [];
 
-  const candidates = [
-    record.pacientes,
-    record.items,
-    record.results,
-    record.data,
-  ].find(Array.isArray);
-
-  if (Array.isArray(candidates)) {
-    return candidates.map(mapPaciente);
-  }
-
-  return [];
+  return pickArrayCandidate(record, ["pacientes", "items", "results", "data"]).map(
+    mapPacienteListado
+  );
 }
 
-function normalizePacienteDto(dto: CreatePacienteDto | UpdatePacienteDto) {
-  const payload: Record<string, unknown> = {};
-
-  if ("nombre" in dto && dto.nombre !== undefined) payload.nombre = dto.nombre;
-  if ("edad" in dto && dto.edad !== undefined) payload.edad = dto.edad;
-  if ("telefono" in dto && dto.telefono !== undefined) payload.telefono = dto.telefono;
-  if ("email" in dto && dto.email !== undefined) payload.email = dto.email;
-  if ("alergias" in dto && dto.alergias !== undefined) payload.alergias = dto.alergias;
-  if ("enfermedadesCronicas" in dto && dto.enfermedadesCronicas !== undefined) {
-    payload.enfermedadesCronicas = dto.enfermedadesCronicas;
-  }
-
-  return payload;
+function cleanCreatePayload<T extends object>(payload: T): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined && value !== "")
+  );
 }
 
-export async function listPacientes(token: string): Promise<Paciente[]> {
+function cleanPatchPayload<T extends object>(payload: T): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  );
+}
+
+export async function createPaciente(dto: CreatePacienteDto, token: string): Promise<PacienteBase> {
+  const payload = await apiRequest<unknown, Record<string, unknown>>("/pacientes", {
+    method: "POST",
+    token,
+    body: cleanCreatePayload(dto),
+  });
+
+  return mapPacienteBase(payload);
+}
+
+export async function listPacientes(token: string): Promise<PacienteListado[]> {
   const payload = await apiRequest<unknown>("/pacientes", { token });
   return mapPacientesCollection(payload);
 }
 
-export async function getPacienteById(id: string, token: string): Promise<Paciente> {
+export async function getPacienteById(id: string, token: string): Promise<PacienteDetalle> {
   const payload = await apiRequest<unknown>(`/pacientes/${id}`, { token });
-  return mapPaciente(payload);
+  return mapPacienteDetalle(payload);
 }
 
-export async function createPaciente(
-  dto: CreatePacienteDto,
-  token: string
-): Promise<Paciente> {
-  const payload = await apiRequest<unknown, Record<string, unknown>>("/pacientes", {
-    method: "POST",
-    token,
-    body: normalizePacienteDto(dto),
-  });
-  return mapPaciente(payload);
-}
-
-export async function updatePaciente(
+export async function patchPacienteDatosPersonales(
   id: string,
-  dto: UpdatePacienteDto,
+  dto: PatchPacienteDatosPersonalesDto,
   token: string
-): Promise<Paciente> {
-  const payload = await apiRequest<unknown, Record<string, unknown>>(`/pacientes/${id}`, {
-    method: "PATCH",
-    token,
-    body: normalizePacienteDto(dto),
-  });
-  return mapPaciente(payload);
+): Promise<PacienteDetalle> {
+  const payload = await apiRequest<unknown, Record<string, unknown>>(
+    `/pacientes/${id}/datos-personales`,
+    {
+      method: "PATCH",
+      token,
+      body: cleanPatchPayload(dto),
+    }
+  );
+
+  return mapPacienteDetalle(payload);
+}
+
+export async function patchPacienteDatosMedicos(
+  id: string,
+  dto: PatchPacienteDatosMedicosDto,
+  token: string
+): Promise<PacienteDetalle> {
+  const payload = await apiRequest<unknown, Record<string, unknown>>(
+    `/pacientes/${id}/datos-medicos`,
+    {
+      method: "PATCH",
+      token,
+      body: cleanPatchPayload(dto),
+    }
+  );
+
+  return mapPacienteDetalle(payload);
 }
 
 export async function deletePaciente(id: string, token: string): Promise<void> {
-  await apiRequest<unknown>(`/pacientes/${id}`, {
+  await apiRequest(`/pacientes/${id}`, {
     method: "DELETE",
     token,
   });

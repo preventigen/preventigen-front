@@ -4,10 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
-  Brain,
   Cog,
   LayoutDashboard,
-  Sparkles,
+  Stethoscope,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -16,10 +15,9 @@ import { SignOutButton } from "@/src/components/medico/layout/SignOutButton";
 
 const sidebarItems = [
   { href: "/medico", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/medico/pacientes", label: "Pacientes", icon: Users },
   { href: "/medico/pacientes/nuevo", label: "Nuevo paciente", icon: UserPlus },
-  { href: "/medico/analisis", label: "Analisis IA", icon: Brain },
-  { href: "/medico/gemelo-digital", label: "Gemelo Digital", icon: Sparkles },
+  { href: "/medico/pacientes", label: "Pacientes", icon: Users },
+  { href: "/medico/consultas", label: "Consultas", icon: Stethoscope },
   { href: "/medico/configuracion", label: "Configuracion", icon: Cog },
 ];
 

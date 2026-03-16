@@ -1,25 +1,25 @@
 import { apiRequest } from "@/src/lib/api/http";
-import type { Consulta, EstadoConsulta } from "@/src/lib/api/types";
+import { asRecord, pickArrayCandidate, toOptionalString, toStringValue } from "@/src/lib/api/parsers";
+import type {
+  Consulta,
+  CreateConsultaDto,
+  PacienteListado,
+  UpdateConsultaDto,
+} from "@/src/lib/api/types";
 
-const ESTADOS_CONSULTA: EstadoConsulta[] = ["borrador", "confirmada", "cerrada"];
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object") return null;
-  return value as Record<string, unknown>;
-}
-
-function toStringValue(value: unknown): string | undefined {
-  if (typeof value === "string" && value.trim().length > 0) return value;
-  if (typeof value === "number") return String(value);
-  return undefined;
-}
-
-function mapEstadoConsulta(value: unknown): EstadoConsulta | null {
-  if (typeof value === "string" && ESTADOS_CONSULTA.includes(value as EstadoConsulta)) {
-    return value as EstadoConsulta;
+function mapPacienteListado(raw: unknown): PacienteListado {
+  const record = asRecord(raw);
+  if (!record) {
+    throw new Error("Paciente invalido recibido desde backend.");
   }
 
-  return null;
+  return {
+    id: toStringValue(record.id) ?? "",
+    nombre: toStringValue(record.nombre) ?? "",
+    apellido: toStringValue(record.apellido) ?? "",
+    fechaNacimiento: toStringValue(record.fechaNacimiento ?? record.fecha_nacimiento) ?? "",
+    genero: record.genero === "F" ? "F" : "M",
+  };
 }
 
 function mapConsulta(raw: unknown): Consulta {
@@ -28,18 +28,20 @@ function mapConsulta(raw: unknown): Consulta {
     throw new Error("Consulta invalida recibida desde backend.");
   }
 
+  const estado = record.estado;
+
   return {
     id: toStringValue(record.id) ?? "",
     pacienteId: toStringValue(record.pacienteId ?? record.paciente_id) ?? "",
-    medicoId: toStringValue(record.medicoId ?? record.medico_id) ?? null,
-    motivo: toStringValue(record.motivo) ?? null,
-    notas: toStringValue(record.notas) ?? null,
-    recomendacion: toStringValue(record.recomendacion) ?? null,
-    estado: mapEstadoConsulta(record.estado),
-    fecha:
-      toStringValue(record.fecha ?? record.fechaConsulta ?? record.fecha_consulta) ?? null,
-    createdAt: toStringValue(record.createdAt ?? record.created_at),
-    updatedAt: toStringValue(record.updatedAt ?? record.updated_at),
+    medicoId: toOptionalString(record.medicoId ?? record.medico_id),
+    detalles: toOptionalString(record.detalles),
+    tratamientoIndicado: toOptionalString(
+      record.tratamientoIndicado ?? record.tratamiento_indicado
+    ),
+    estado: estado === "cerrada" || estado === "confirmada" ? estado : "borrador",
+    createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
+    updatedAt: toOptionalString(record.updatedAt ?? record.updated_at) ?? undefined,
+    paciente: record.paciente ? mapPacienteListado(record.paciente) : null,
   };
 }
 
@@ -51,21 +53,63 @@ function mapConsultasCollection(payload: unknown): Consulta[] {
   const record = asRecord(payload);
   if (!record) return [];
 
-  const candidates = [
-    record.consultas,
-    record.items,
-    record.results,
-    record.data,
-  ].find(Array.isArray);
+  return pickArrayCandidate(record, ["consultas", "items", "results", "data"]).map(mapConsulta);
+}
 
-  if (Array.isArray(candidates)) {
-    return candidates.map(mapConsulta);
-  }
+function cleanCreatePayload<T extends object>(payload: T): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined && value !== "")
+  );
+}
 
-  return [];
+function cleanPatchPayload<T extends object>(payload: T): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined)
+  );
+}
+
+export async function createConsulta(dto: CreateConsultaDto, token: string): Promise<Consulta> {
+  const payload = await apiRequest<unknown, Record<string, unknown>>("/consultas", {
+    method: "POST",
+    token,
+    body: cleanCreatePayload(dto),
+  });
+
+  return mapConsulta(payload);
 }
 
 export async function listConsultas(token: string): Promise<Consulta[]> {
   const payload = await apiRequest<unknown>("/consultas", { token });
   return mapConsultasCollection(payload);
+}
+
+export async function listConsultasByPaciente(
+  pacienteId: string,
+  token: string
+): Promise<Consulta[]> {
+  const payload = await apiRequest<unknown>(`/consultas/paciente/${pacienteId}`, { token });
+  return mapConsultasCollection(payload);
+}
+
+export async function updateConsulta(
+  id: string,
+  dto: UpdateConsultaDto,
+  token: string
+): Promise<Consulta> {
+  const payload = await apiRequest<unknown, Record<string, unknown>>(`/consultas/${id}`, {
+    method: "PATCH",
+    token,
+    body: cleanPatchPayload(dto),
+  });
+
+  return mapConsulta(payload);
+}
+
+export async function cerrarConsulta(id: string, token: string): Promise<Consulta> {
+  const payload = await apiRequest<unknown>(`/consultas/${id}/cerrar`, {
+    method: "POST",
+    token,
+  });
+
+  return mapConsulta(payload);
 }

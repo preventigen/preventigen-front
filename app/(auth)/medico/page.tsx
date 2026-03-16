@@ -1,15 +1,15 @@
 import Link from "next/link";
-import { Brain, FilePlus2, UserPlus } from "lucide-react";
+import { FilePlus2, Stethoscope, UserPlus } from "lucide-react";
 import { Button } from "@/src/components/magic/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/magic/ui/card";
 import { EmptyState } from "@/src/components/medico/states/EmptyState";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
-import { listAnalisisIaByPaciente } from "@/src/lib/api/analisis-ia";
-import { listDatosMedicosByPaciente } from "@/src/lib/api/datos-medicos";
+import { listConsultas } from "@/src/lib/api/consultas";
+import { isApiError } from "@/src/lib/api/http";
 import { listPacientes } from "@/src/lib/api/pacientes";
-import type { AnalisisIA, DatoMedico, Paciente } from "@/src/lib/api/types";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
-import { formatDateTime, textPreview } from "@/src/lib/formatters";
+import { formatDateTime } from "@/src/lib/formatters";
+import { redirect } from "next/navigation";
 
 function sortByNewest<T extends { createdAt?: string }>(items: T[]) {
   return [...items].sort((a, b) => {
@@ -19,57 +19,27 @@ function sortByNewest<T extends { createdAt?: string }>(items: T[]) {
   });
 }
 
-async function getDashboardData(token: string) {
-  const pacientes = await listPacientes(token);
-
-  const datosResults = await Promise.all(
-    pacientes.map(async (paciente) => {
-      try {
-        return await listDatosMedicosByPaciente(paciente.id, token);
-      } catch {
-        return [] as DatoMedico[];
-      }
-    })
-  );
-
-  const analisisResults = await Promise.all(
-    pacientes.map(async (paciente) => {
-      try {
-        return await listAnalisisIaByPaciente(paciente.id, token);
-      } catch {
-        return [] as AnalisisIA[];
-      }
-    })
-  );
-
-  const datosMedicos = datosResults.flat();
-  const analisis = analisisResults.flat();
-
-  const recentPatients = sortByNewest<Paciente>(pacientes).slice(0, 5);
-  const recentAnalisis = sortByNewest<AnalisisIA>(analisis).slice(0, 5);
-
-  return {
-    pacientes,
-    datosMedicos,
-    analisis,
-    recentPatients,
-    recentAnalisis,
-  };
-}
-
 export default async function MedicoDashboardPage() {
   const { session, token } = await requireMedicoSession();
 
   const dashboardResult = await (async () => {
     try {
-      const data = await getDashboardData(token);
-      return { data };
+      const [pacientes, consultas] = await Promise.all([
+        listPacientes(token),
+        listConsultas(token),
+      ]);
+
+      return { pacientes, consultas };
     } catch (error) {
+      if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+        redirect("/credentials");
+      }
+
       return {
         errorMessage:
           error instanceof Error
             ? error.message
-            : "Hubo un problema al cargar los datos del panel medico.",
+            : "Hubo un problema al cargar el dashboard medico.",
       };
     }
   })();
@@ -85,7 +55,11 @@ export default async function MedicoDashboardPage() {
     );
   }
 
-  const { pacientes, datosMedicos, analisis, recentPatients, recentAnalisis } = dashboardResult.data;
+  const recentPacientes = dashboardResult.pacientes.slice(0, 5);
+  const recentConsultas = sortByNewest(dashboardResult.consultas).slice(0, 5);
+  const consultasBorrador = dashboardResult.consultas.filter(
+    (consulta) => consulta.estado === "borrador"
+  );
 
   return (
     <div className="space-y-6">
@@ -94,26 +68,26 @@ export default async function MedicoDashboardPage() {
           Bienvenido, {session.user?.name ?? "Medico"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Aqui tienes un resumen rapido de tus pacientes y actividad clinica reciente.
+          Resumen del panel medico adaptado al nuevo flujo clinico.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Button asChild>
             <Link href="/medico/pacientes/nuevo">
               <UserPlus className="h-4 w-4" />
-              Crear paciente
+              Nuevo paciente
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/medico/pacientes">
               <FilePlus2 className="h-4 w-4" />
-              Cargar dato medico
+              Ver pacientes
             </Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/medico/analisis">
-              <Brain className="h-4 w-4" />
-              Analizar con IA
+            <Link href="/medico/consultas">
+              <Stethoscope className="h-4 w-4" />
+              Ir a consultas
             </Link>
           </Button>
         </div>
@@ -122,40 +96,40 @@ export default async function MedicoDashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Total de pacientes</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Pacientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-heading">{pacientes.length}</p>
+            <p className="text-3xl font-semibold text-heading">
+              {dashboardResult.pacientes.length}
+            </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">
-              Registros medicos cargados
-            </CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Consultas totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-heading">{datosMedicos.length}</p>
+            <p className="text-3xl font-semibold text-heading">
+              {dashboardResult.consultas.length}
+            </p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Analisis IA generados</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Consultas borrador</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-heading">{analisis.length}</p>
+            <p className="text-3xl font-semibold text-heading">{consultasBorrador.length}</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Consultas pendientes</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Consultas cerradas</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-heading">0</p>
-            <p className="mt-1 text-xs text-muted-foreground">Placeholder para siguiente etapa</p>
+            <p className="text-3xl font-semibold text-heading">
+              {dashboardResult.consultas.filter((consulta) => consulta.estado === "cerrada").length}
+            </p>
           </CardContent>
         </Card>
       </section>
@@ -163,81 +137,80 @@ export default async function MedicoDashboardPage() {
       <section className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Pacientes modificados recientemente</CardTitle>
+            <CardTitle>Pacientes recientes</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentPatients.length === 0 ? (
+            {recentPacientes.length === 0 ? (
               <EmptyState
-                title="Sin actividad de pacientes"
+                title="Sin pacientes aun"
                 description="Cuando cargues pacientes, apareceran aqui."
                 actionLabel="Crear paciente"
                 actionHref="/medico/pacientes/nuevo"
               />
             ) : (
-              <ul className="space-y-3">
-                {recentPatients.map((paciente) => (
-                  <li key={paciente.id} className="rounded-lg border border-border p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium text-heading">{paciente.nombre}</p>
-                      <Button asChild size="sm" variant="ghost">
-                        <Link href={`/medico/pacientes/${paciente.id}`}>Ver</Link>
+              <div className="space-y-3">
+                {recentPacientes.map((paciente) => (
+                  <div key={paciente.id} className="rounded-lg border border-border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-heading">
+                          {paciente.nombre} {paciente.apellido}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {paciente.genero} · {paciente.fechaNacimiento}
+                        </p>
+                      </div>
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/medico/pacientes/${paciente.id}`}>Ver ficha</Link>
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Alta: {formatDateTime(paciente.createdAt)}
-                    </p>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Analisis IA recientes</CardTitle>
+            <CardTitle>Consultas recientes</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentAnalisis.length === 0 ? (
+            {recentConsultas.length === 0 ? (
               <EmptyState
-                title="Sin analisis recientes"
-                description="Aun no se generaron analisis con IA."
+                title="Sin consultas aun"
+                description="Crea una consulta desde la ficha del paciente o desde la seccion Consultas."
+                actionLabel="Ir a consultas"
+                actionHref="/medico/consultas"
               />
             ) : (
-              <ul className="space-y-3">
-                {recentAnalisis.map((item) => (
-                  <li key={item.id} className="rounded-lg border border-border p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs uppercase text-muted-foreground">
-                        {item.tipoPrompt ?? "sistema"}
-                      </p>
-                      <Button asChild size="sm" variant="ghost">
-                        <Link href={`/medico/pacientes/${item.pacienteId}/analisis/${item.id}`}>
-                          Ver
+              <div className="space-y-3">
+                {recentConsultas.map((consulta) => (
+                  <div key={consulta.id} className="rounded-lg border border-border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-heading">
+                          {consulta.paciente
+                            ? `${consulta.paciente.nombre} ${consulta.paciente.apellido}`
+                            : consulta.pacienteId}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTime(consulta.createdAt)} · {consulta.estado}
+                        </p>
+                      </div>
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/medico/pacientes/${consulta.pacienteId}#consultas`}>
+                          Abrir
                         </Link>
                       </Button>
                     </div>
-                    <p className="mt-1 text-sm text-heading">{textPreview(item.respuesta, 160)}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDateTime(item.createdAt)}
-                    </p>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </CardContent>
         </Card>
       </section>
-
-      {pacientes.length === 0 ? (
-        <EmptyState
-          title="El panel esta listo para comenzar"
-          description="Tu primer paso es crear un paciente y cargar datos medicos para iniciar analisis IA."
-          actionLabel="Crear primer paciente"
-          actionHref="/medico/pacientes/nuevo"
-        />
-      ) : null}
     </div>
   );
 }
-

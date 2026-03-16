@@ -1,7 +1,9 @@
 import { PacientesList } from "@/src/components/medico/pacientes/PacientesList";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
+import { isApiError } from "@/src/lib/api/http";
 import { listPacientes } from "@/src/lib/api/pacientes";
 import { requireMedicoSession } from "@/src/lib/auth/require-medico-session";
+import { redirect } from "next/navigation";
 
 export default async function PacientesPage() {
   const { token } = await requireMedicoSession();
@@ -11,6 +13,10 @@ export default async function PacientesPage() {
       const pacientes = await listPacientes(token);
       return { pacientes };
     } catch (error) {
+      if (isApiError(error) && (error.status === 401 || error.status === 403)) {
+        redirect("/credentials");
+      }
+
       return {
         errorMessage:
           error instanceof Error ? error.message : "Intenta nuevamente en unos minutos.",
