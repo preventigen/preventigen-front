@@ -20,6 +20,7 @@ import {
   patchPacienteDatosMedicos,
   patchPacienteDatosPersonales,
 } from "@/src/lib/api/pacientes";
+import { showErrorToast, showSuccessToast, showWarningToast } from "@/src/lib/toast";
 import type {
   GeneroPaciente,
   PacienteDetalle,
@@ -67,8 +68,6 @@ function pickChanged<T extends Record<string, string>>(current: T, initial: T) {
 export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() => buildInitialState(paciente));
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initial = useMemo(() => buildInitialState(paciente), [paciente]);
@@ -77,11 +76,8 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
     if (!hasRequiredFields) {
-      setErrorMessage("Completa nombre, apellido, fecha de nacimiento y genero.");
+      showWarningToast("Completa nombre, apellido, fecha de nacimiento y genero.");
       return;
     }
 
@@ -150,7 +146,7 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
       }
 
       await Promise.all(requests);
-      setSuccessMessage("Paciente actualizado correctamente.");
+      showSuccessToast("Paciente actualizado correctamente.");
       router.push(`/medico/pacientes/${paciente.id}`);
       router.refresh();
     } catch (error) {
@@ -159,7 +155,7 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
         return;
       }
 
-      setErrorMessage(
+      showErrorToast(
         error instanceof Error ? error.message : "No se pudo actualizar el paciente."
       );
     } finally {
@@ -285,18 +281,6 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
               className="min-h-24"
             />
           </div>
-
-          {errorMessage ? (
-            <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {errorMessage}
-            </p>
-          ) : null}
-
-          {successMessage ? (
-            <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              {successMessage}
-            </p>
-          ) : null}
 
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={!hasRequiredFields || isSubmitting}>

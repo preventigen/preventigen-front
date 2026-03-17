@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/src/components/magic/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/src/components/magic/ui/alert";
 import { BlurFade } from "@/src/components/magic/ui/blur-fade";
+import { showErrorToast, showSuccessToast } from "@/src/lib/toast";
 import {
   ShieldCheck,
   Clock,
@@ -82,8 +83,10 @@ export function ContactSection() {
       await new Promise((r) => setTimeout(r, 800));
       setStatus("success");
       setData(initial);
+      showSuccessToast("Solicitud enviada. Te contactaremos para orientar los proximos pasos.");
     } catch {
       setStatus("error");
+      showErrorToast("No pudimos enviar tu solicitud. Por favor, intenta nuevamente.");
     }
   }
 

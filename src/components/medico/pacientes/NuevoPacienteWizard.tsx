@@ -20,6 +20,7 @@ import { createGemeloDigital } from "@/src/lib/api/gemelos-digitales";
 import { isApiError } from "@/src/lib/api/http";
 import { createPaciente } from "@/src/lib/api/pacientes";
 import { formatDate } from "@/src/lib/formatters";
+import { showErrorToast, showSuccessToast, showWarningToast } from "@/src/lib/toast";
 import type { CreatePacienteDto, EstudioMedico, GeneroPaciente } from "@/src/lib/api/types";
 
 interface NuevoPacienteWizardProps {
@@ -99,8 +100,6 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
   const [pacienteId, setPacienteId] = useState<string | null>(null);
   const [estudios, setEstudios] = useState<EstudioMedico[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isCreatingPaciente, setIsCreatingPaciente] = useState(false);
   const [isCreatingGemelo, setIsCreatingGemelo] = useState(false);
   const [isCreatingEstudio, setIsCreatingEstudio] = useState(false);
@@ -131,12 +130,10 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
 
   async function handleCreatePaciente(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
     setStatusMessage(null);
 
     if (!isPacienteValid) {
-      setErrorMessage("Completa nombre, apellido, fecha de nacimiento y genero.");
+      showWarningToast("Completa nombre, apellido, fecha de nacimiento y genero.");
       return;
     }
 
@@ -162,10 +159,10 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
       setPacienteId(createdPaciente.id);
       setCurrentStep(2);
       setStatusMessage(null);
-      setSuccessMessage("Paciente creado correctamente.");
+      showSuccessToast("Paciente creado correctamente.");
     } catch (error) {
       if (handleUnauthorized(error)) return;
-      setErrorMessage(error instanceof Error ? error.message : "No se pudo crear el paciente.");
+      showErrorToast(error instanceof Error ? error.message : "No se pudo crear el paciente.");
       setStatusMessage(null);
     } finally {
       setIsCreatingPaciente(false);
@@ -175,20 +172,17 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
   async function handleCreateGemelo() {
     if (!pacienteId) return;
 
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
     try {
       setIsCreatingGemelo(true);
       setStatusMessage("Paciente creado. Creando gemelo digital...");
       await createGemeloDigital({ pacienteId }, token);
       setCurrentStep(3);
       setStatusMessage("Gemelo creado. (Opcional) Cargando estudios...");
-      setSuccessMessage("Paciente y gemelo creados correctamente.");
+      showSuccessToast("Paciente y gemelo creados correctamente.");
     } catch (error) {
       if (handleUnauthorized(error)) return;
       setStatusMessage(null);
-      setErrorMessage(
+      showErrorToast(
         error instanceof Error
           ? `El paciente se creo, pero no se pudo crear el gemelo digital. ${error.message}`
           : "El paciente se creo, pero no se pudo crear el gemelo digital."
@@ -202,11 +196,8 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
     event.preventDefault();
     if (!pacienteId) return;
 
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
     if (!canCreateEstudio) {
-      setErrorMessage("El nombre del estudio es obligatorio.");
+      showWarningToast("El nombre del estudio es obligatorio.");
       return;
     }
 
@@ -226,10 +217,10 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
 
       setEstudios((prev) => [estudio, ...prev]);
       setEstudioForm(initialEstudioForm);
-      setSuccessMessage("Estudio agregado correctamente.");
+      showSuccessToast("Estudio agregado correctamente.");
     } catch (error) {
       if (handleUnauthorized(error)) return;
-      setErrorMessage(
+      showErrorToast(
         error instanceof Error
           ? `No se pudo cargar el estudio. ${error.message}`
           : "No se pudo cargar el estudio."
@@ -243,12 +234,9 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
   async function finishWizard({ savePendingEstudio }: { savePendingEstudio: boolean }) {
     if (!pacienteId) return;
 
-    setErrorMessage(null);
-    setSuccessMessage(null);
-
     if (savePendingEstudio && hasPendingEstudio) {
       if (!canCreateEstudio) {
-        setErrorMessage("Completa el nombre del estudio o limpia el formulario antes de finalizar.");
+        showWarningToast("Completa el nombre del estudio o limpia el formulario antes de finalizar.");
         return;
       }
 
@@ -267,7 +255,7 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
         );
       } catch (error) {
         if (handleUnauthorized(error)) return;
-        setErrorMessage(
+        showErrorToast(
           error instanceof Error
             ? `No se pudo guardar el estudio. ${error.message}`
             : "No se pudo guardar el estudio."
@@ -278,7 +266,7 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
       }
     }
 
-    setSuccessMessage(
+    showSuccessToast(
       savePendingEstudio && hasPendingEstudio
         ? "Paciente, gemelo y estudio guardados correctamente."
         : "Paciente y gemelo creados correctamente."
@@ -298,28 +286,6 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
       {statusMessage ? (
         <p className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-700">
           {statusMessage}
-        </p>
-      ) : null}
-
-      {errorMessage ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-          <p>{errorMessage}</p>
-          {pacienteId ? (
-            <p className="mt-2">
-              <Link
-                href={`/medico/pacientes/${pacienteId}`}
-                className="font-medium underline underline-offset-2"
-              >
-                Ir a ficha del paciente
-              </Link>
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {successMessage}
         </p>
       ) : null}
 

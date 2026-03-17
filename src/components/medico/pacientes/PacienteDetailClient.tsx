@@ -28,6 +28,7 @@ import { actualizarGemelo, simularTratamiento } from "@/src/lib/api/gemelos-digi
 import { isApiError } from "@/src/lib/api/http";
 import { createNovedad, deleteNovedad } from "@/src/lib/api/novedades-clinicas";
 import { formatDate, formatDateTime, textPreview } from "@/src/lib/formatters";
+import { showErrorToast, showSuccessToast, showWarningToast } from "@/src/lib/toast";
 import type {
   AnalisisIA,
   ContextoAnalisisIA,
@@ -80,23 +81,12 @@ function cleanObject<T extends Record<string, unknown>>(value: T) {
   ) as T;
 }
 
-function Message({
-  tone,
-  message,
-}: {
-  tone: "error" | "success" | "warning";
-  message: string | null;
-}) {
-  if (!message) return null;
-
-  const toneClass =
-    tone === "error"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
-      : tone === "warning"
-        ? "border-amber-200 bg-amber-50 text-amber-700"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700";
-
-  return <p className={`rounded-md border px-3 py-2 text-sm ${toneClass}`}>{message}</p>;
+function InlineNotice({ message }: { message: string }) {
+  return (
+    <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+      {message}
+    </p>
+  );
 }
 
 export function PacienteDetailClient({
@@ -142,8 +132,6 @@ export function PacienteDetailClient({
     cambiosRealizados: "",
     datosActualizados: "{\n  \"presionArterial\": \"\"\n}",
   });
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [pendingSection, setPendingSection] = useState<string | null>(null);
 
   const activeConsulta = useMemo(
@@ -165,8 +153,6 @@ export function PacienteDetailClient({
 
   function resetMessages(section: string) {
     setPendingSection(section);
-    setError(null);
-    setSuccess(null);
   }
 
   function finishSection() {
@@ -184,7 +170,7 @@ export function PacienteDetailClient({
   async function submitDatoMedico(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!datoContenido.trim()) {
-      setError("El contenido del dato medico es obligatorio.");
+      showWarningToast("El contenido del dato medico es obligatorio.");
       return;
     }
 
@@ -197,10 +183,10 @@ export function PacienteDetailClient({
       setDatosMedicos((prev) => sortByNewest([dato, ...prev]));
       setDatoContenido("");
       setDatoTipo("otro");
-      setSuccess("Dato medico agregado correctamente.");
+      showSuccessToast("Dato medico agregado correctamente.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo guardar el dato medico.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo guardar el dato medico.");
     } finally {
       finishSection();
     }
@@ -208,7 +194,7 @@ export function PacienteDetailClient({
 
   async function saveDatoMedico(id: string) {
     if (!editingDatoContenido.trim()) {
-      setError("El contenido editado no puede quedar vacio.");
+      showWarningToast("El contenido editado no puede quedar vacio.");
       return;
     }
 
@@ -221,10 +207,10 @@ export function PacienteDetailClient({
       );
       setDatosMedicos((prev) => sortByNewest(prev.map((item) => (item.id === id ? updated : item))));
       setEditingDatoId(null);
-      setSuccess("Dato medico actualizado.");
+      showSuccessToast("Dato medico actualizado.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo actualizar el dato medico.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo actualizar el dato medico.");
     } finally {
       finishSection();
     }
@@ -235,10 +221,10 @@ export function PacienteDetailClient({
       resetMessages("datos-medicos");
       await deleteDatoMedico(id, token);
       setDatosMedicos((prev) => prev.filter((item) => item.id !== id));
-      setSuccess("Dato medico eliminado.");
+      showSuccessToast("Dato medico eliminado.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo eliminar el dato medico.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo eliminar el dato medico.");
     } finally {
       finishSection();
     }
@@ -247,7 +233,7 @@ export function PacienteDetailClient({
   async function submitEstudio(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!estudioForm.nombreEstudio.trim()) {
-      setError("El nombre del estudio es obligatorio.");
+      showWarningToast("El nombre del estudio es obligatorio.");
       return;
     }
 
@@ -264,10 +250,10 @@ export function PacienteDetailClient({
       );
       setEstudios((prev) => sortByNewest([estudio, ...prev]));
       setEstudioForm({ nombreEstudio: "", fecha: "", observaciones: "" });
-      setSuccess("Estudio agregado correctamente.");
+      showSuccessToast("Estudio agregado correctamente.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo agregar el estudio.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo agregar el estudio.");
     } finally {
       finishSection();
     }
@@ -278,10 +264,10 @@ export function PacienteDetailClient({
       resetMessages("estudios");
       await deleteEstudio(id, token);
       setEstudios((prev) => prev.filter((item) => item.id !== id));
-      setSuccess("Estudio eliminado.");
+      showSuccessToast("Estudio eliminado.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo eliminar el estudio.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo eliminar el estudio.");
     } finally {
       finishSection();
     }
@@ -311,10 +297,10 @@ export function PacienteDetailClient({
         gravedad: "",
         observaciones: "",
       });
-      setSuccess("Novedad clinica agregada.");
+      showSuccessToast("Novedad clinica agregada.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo agregar la novedad.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo agregar la novedad.");
     } finally {
       finishSection();
     }
@@ -325,10 +311,10 @@ export function PacienteDetailClient({
       resetMessages("novedades");
       await deleteNovedad(id, token);
       setNovedades((prev) => prev.filter((item) => item.id !== id));
-      setSuccess("Novedad eliminada.");
+      showSuccessToast("Novedad eliminada.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo eliminar la novedad.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo eliminar la novedad.");
     } finally {
       finishSection();
     }
@@ -339,10 +325,10 @@ export function PacienteDetailClient({
       resetMessages("consultas");
       const consulta = await createConsulta({ pacienteId: paciente.id }, token);
       setConsultas((prev) => sortByNewest([consulta, ...prev]));
-      setSuccess("Consulta borrador creada.");
+      showSuccessToast("Consulta borrador creada.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo crear la consulta.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo crear la consulta.");
     } finally {
       finishSection();
     }
@@ -355,10 +341,10 @@ export function PacienteDetailClient({
       resetMessages("consultas");
       const updated = await updateConsulta(activeConsulta.id, consultaForm, token);
       setConsultas((prev) => sortByNewest(prev.map((item) => (item.id === updated.id ? updated : item))));
-      setSuccess("Consulta guardada.");
+      showSuccessToast("Consulta guardada.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo guardar la consulta.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo guardar la consulta.");
     } finally {
       finishSection();
     }
@@ -372,10 +358,10 @@ export function PacienteDetailClient({
       const closed = await cerrarConsulta(activeConsulta.id, token);
       setConsultas((prev) => sortByNewest(prev.map((item) => (item.id === closed.id ? closed : item))));
       setConsultaForm({ detalles: "", tratamientoIndicado: "" });
-      setSuccess("Consulta cerrada correctamente.");
+      showSuccessToast("Consulta cerrada correctamente.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo cerrar la consulta.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo cerrar la consulta.");
     } finally {
       finishSection();
     }
@@ -396,10 +382,10 @@ export function PacienteDetailClient({
       const nuevoContexto = await getContexto(paciente.id, token);
       setUltimoAnalisis(analisis);
       setContextoIa(nuevoContexto);
-      setSuccess("Analisis IA generado.");
+      showSuccessToast("Analisis IA generado.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo generar el analisis.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo generar el analisis.");
     } finally {
       finishSection();
     }
@@ -408,7 +394,7 @@ export function PacienteDetailClient({
   async function submitSimulacion() {
     if (!gemelo?.id) return;
     if (!simulacionForm.tratamientoPropuesto.trim()) {
-      setError("El tratamiento propuesto es obligatorio.");
+      showWarningToast("El tratamiento propuesto es obligatorio.");
       return;
     }
 
@@ -423,10 +409,10 @@ export function PacienteDetailClient({
         token
       );
       setUltimaSimulacion(simulacion);
-      setSuccess("Simulacion completada.");
+      showSuccessToast("Simulacion completada.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo simular el tratamiento.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo simular el tratamiento.");
     } finally {
       finishSection();
     }
@@ -435,7 +421,7 @@ export function PacienteDetailClient({
   async function submitGemeloUpdate() {
     if (!gemelo?.id) return;
     if (!gemeloUpdateForm.consultaId) {
-      setError("Selecciona una consulta para actualizar el gemelo.");
+      showWarningToast("Selecciona una consulta para actualizar el gemelo.");
       return;
     }
 
@@ -444,7 +430,7 @@ export function PacienteDetailClient({
     try {
       datosActualizados = JSON.parse(gemeloUpdateForm.datosActualizados);
     } catch {
-      setError("`datosActualizados` debe ser JSON valido.");
+      showWarningToast("`datosActualizados` debe ser JSON valido.");
       return;
     }
 
@@ -460,10 +446,10 @@ export function PacienteDetailClient({
         token
       );
       setGemelo(updatedGemelo);
-      setSuccess("Gemelo digital actualizado.");
+      showSuccessToast("Gemelo digital actualizado.");
     } catch (err) {
       if (handleUnauthorized(err)) return;
-      setError(err instanceof Error ? err.message : "No se pudo actualizar el gemelo.");
+      showErrorToast(err instanceof Error ? err.message : "No se pudo actualizar el gemelo.");
     } finally {
       finishSection();
     }
@@ -471,9 +457,6 @@ export function PacienteDetailClient({
 
   return (
     <div className="grid gap-6">
-      <Message tone="error" message={error} />
-      <Message tone="success" message={success} />
-
       <Card>
         <CardHeader>
           <CardTitle>Datos medicos</CardTitle>
@@ -715,7 +698,7 @@ export function PacienteDetailClient({
           <CardHeader><CardTitle>Gemelo digital y simulacion</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             {!gemelo ? (
-              <Message tone="warning" message="Este paciente no tiene gemelo digital. La simulacion queda bloqueada." />
+              <InlineNotice message="Este paciente no tiene gemelo digital. La simulacion queda bloqueada." />
             ) : (
               <div className="rounded-lg border border-border p-4 text-sm">
                 <p className="font-medium text-heading">Estado: {gemelo.estado}</p>
@@ -744,8 +727,8 @@ export function PacienteDetailClient({
         <Card>
           <CardHeader><CardTitle>Actualizar gemelo digital</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            {!gemelo ? <Message tone="warning" message="Sin gemelo digital no es posible aplicar actualizaciones." /> : null}
-            {gemelo && consultas.length === 0 ? <Message tone="warning" message="No hay consultas registradas. Debes crear una para actualizar el gemelo." /> : null}
+            {!gemelo ? <InlineNotice message="Sin gemelo digital no es posible aplicar actualizaciones." /> : null}
+            {gemelo && consultas.length === 0 ? <InlineNotice message="No hay consultas registradas. Debes crear una para actualizar el gemelo." /> : null}
             <Select value={gemeloUpdateForm.consultaId} onValueChange={(value) => setGemeloUpdateForm((prev) => ({ ...prev, consultaId: value }))} disabled={!gemelo || consultas.length === 0}>
               <SelectTrigger className="w-full"><SelectValue placeholder="Consulta asociada" /></SelectTrigger>
               <SelectContent>
