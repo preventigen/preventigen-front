@@ -115,6 +115,10 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
   }, [pacienteForm]);
 
   const canCreateEstudio = estudioForm.nombreEstudio.trim().length > 0;
+  const hasPendingEstudio =
+    estudioForm.nombreEstudio.trim().length > 0 ||
+    estudioForm.fecha.length > 0 ||
+    estudioForm.observaciones.trim().length > 0;
 
   function handleUnauthorized(error: unknown) {
     if (isApiError(error) && (error.status === 401 || error.status === 403)) {
@@ -236,9 +240,49 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
     }
   }
 
-  function finishWizard() {
+  async function finishWizard({ savePendingEstudio }: { savePendingEstudio: boolean }) {
     if (!pacienteId) return;
-    setSuccessMessage("Paciente y gemelo creados correctamente.");
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    if (savePendingEstudio && hasPendingEstudio) {
+      if (!canCreateEstudio) {
+        setErrorMessage("Completa el nombre del estudio o limpia el formulario antes de finalizar.");
+        return;
+      }
+
+      try {
+        setIsCreatingEstudio(true);
+        setStatusMessage("Guardando estudio y redirigiendo a la ficha del paciente...");
+
+        await createEstudioMedico(
+          {
+            pacienteId,
+            nombreEstudio: estudioForm.nombreEstudio.trim(),
+            fecha: estudioForm.fecha || undefined,
+            observaciones: estudioForm.observaciones.trim() || undefined,
+          },
+          token
+        );
+      } catch (error) {
+        if (handleUnauthorized(error)) return;
+        setErrorMessage(
+          error instanceof Error
+            ? `No se pudo guardar el estudio. ${error.message}`
+            : "No se pudo guardar el estudio."
+        );
+        setStatusMessage(null);
+        setIsCreatingEstudio(false);
+        return;
+      }
+    }
+
+    setSuccessMessage(
+      savePendingEstudio && hasPendingEstudio
+        ? "Paciente, gemelo y estudio guardados correctamente."
+        : "Paciente y gemelo creados correctamente."
+    );
     router.push(`/medico/pacientes/${pacienteId}`);
     router.refresh();
   }
@@ -519,11 +563,25 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
                   <Button type="submit" disabled={!canCreateEstudio || isCreatingEstudio}>
                     {isCreatingEstudio ? "Agregando estudio..." : "Agregar estudio"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={finishWizard}>
-                    Finalizar
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void finishWizard({ savePendingEstudio: true })}
+                    disabled={isCreatingEstudio}
+                  >
+                    {isCreatingEstudio
+                      ? "Guardando..."
+                      : hasPendingEstudio
+                        ? "Finalizar y guardar estudio"
+                        : "Finalizar"}
                   </Button>
-                  <Button type="button" variant="ghost" onClick={finishWizard}>
-                    Saltar este paso
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => void finishWizard({ savePendingEstudio: false })}
+                    disabled={isCreatingEstudio}
+                  >
+                    {hasPendingEstudio ? "Descartar estudio y finalizar" : "Saltar este paso"}
                   </Button>
                 </div>
               </form>
