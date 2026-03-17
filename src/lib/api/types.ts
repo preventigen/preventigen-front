@@ -167,6 +167,20 @@ export interface PacienteDetalle extends PacienteBase {
   novedades: NovedadClinica[];
 }
 
+export interface CreatePacienteEstudioDto {
+  nombreEstudio: string;
+  fecha?: string;
+  observaciones?: string;
+}
+
+export interface CreatePacienteNovedadDto {
+  tipoEvento?: string;
+  descripcion?: string;
+  zonaAfectada?: string;
+  gravedad?: GravedadNovedad;
+  observaciones?: string;
+}
+
 export interface CreatePacienteDto {
   nombre: string;
   apellido: string;
@@ -177,6 +191,8 @@ export interface CreatePacienteDto {
   medicacionActual?: string;
   presionArterial?: string;
   comentarios?: string;
+  estudios?: CreatePacienteEstudioDto[];
+  novedades?: CreatePacienteNovedadDto[];
 }
 
 export interface PatchPacienteDatosPersonalesDto {

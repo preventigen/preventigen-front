@@ -143,10 +143,32 @@ function mapPacientesCollection(payload: unknown): PacienteListado[] {
   );
 }
 
+function cleanCreateValue(value: unknown): unknown {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  if (Array.isArray(value)) {
+    const cleanedItems = value
+      .map((item) => cleanCreateValue(item))
+      .filter((item) => item !== undefined);
+
+    return cleanedItems.length > 0 ? cleanedItems : undefined;
+  }
+
+  if (typeof value === "object") {
+    const cleanedEntries = Object.entries(value as Record<string, unknown>)
+      .map(([key, nestedValue]) => [key, cleanCreateValue(nestedValue)] as const)
+      .filter(([, nestedValue]) => nestedValue !== undefined);
+
+    return cleanedEntries.length > 0 ? Object.fromEntries(cleanedEntries) : undefined;
+  }
+
+  return value;
+}
+
 function cleanCreatePayload<T extends object>(payload: T): Record<string, unknown> {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([, value]) => value !== undefined && value !== "")
-  );
+  return (cleanCreateValue(payload) as Record<string, unknown> | undefined) ?? {};
 }
 
 function cleanPatchPayload<T extends object>(payload: T): Record<string, unknown> {
@@ -155,14 +177,14 @@ function cleanPatchPayload<T extends object>(payload: T): Record<string, unknown
   );
 }
 
-export async function createPaciente(dto: CreatePacienteDto, token: string): Promise<PacienteBase> {
+export async function createPaciente(dto: CreatePacienteDto, token: string): Promise<PacienteDetalle> {
   const payload = await apiRequest<unknown, Record<string, unknown>>("/pacientes", {
     method: "POST",
     token,
     body: cleanCreatePayload(dto),
   });
 
-  return mapPacienteBase(payload);
+  return mapPacienteDetalle(payload);
 }
 
 export async function listPacientes(token: string): Promise<PacienteListado[]> {

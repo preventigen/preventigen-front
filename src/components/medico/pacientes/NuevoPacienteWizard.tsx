@@ -64,7 +64,9 @@ const initialEstudioForm: EstudioFormState = {
 
 function cleanPayload(payload: CreatePacienteDto): CreatePacienteDto {
   return Object.fromEntries(
-    Object.entries(payload).filter(([, value]) => value !== undefined && value !== "")
+    Object.entries(payload).filter(
+      ([, value]) => value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0)
+    )
   ) as CreatePacienteDto;
 }
 
