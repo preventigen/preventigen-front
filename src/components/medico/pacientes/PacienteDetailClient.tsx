@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createAnalisis, getContexto } from "@/src/lib/api/analisis-ia";
+import { createConsultaAsistenteMedico } from "@/src/lib/api/asistente-medico";
 import { cerrarConsulta, createConsulta, updateConsulta } from "@/src/lib/api/consultas";
 import {
   createDatoMedico,
@@ -16,6 +17,7 @@ import { createNovedad, deleteNovedad } from "@/src/lib/api/novedades-clinicas";
 import { showErrorToast, showSuccessToast, showWarningToast } from "@/src/lib/toast";
 import { PacienteDetailTabs } from "@/src/components/medico/pacientes/detail/PacienteDetailTabs";
 import {
+  type AsistenteMedicoFormState,
   cleanObject,
   isDetailTabValue,
   sortByNewest,
@@ -31,6 +33,7 @@ import {
 } from "@/src/components/medico/pacientes/detail/shared/utils";
 import type {
   AnalisisIA,
+  AsistenteMedicoConsulta,
   ContextoAnalisisIA,
   Consulta,
   DatoMedico,
@@ -50,6 +53,7 @@ interface PacienteDetailClientProps {
   initialNovedades: NovedadClinica[];
   initialUltimoAnalisis: AnalisisIA | null;
   initialContextoIa: ContextoAnalisisIA | null;
+  initialHistorialAsistente: AsistenteMedicoConsulta[];
   initialGemelo: GemeloDigital | null;
   initialUltimaSimulacion: SimulacionTratamiento | null;
 }
@@ -63,6 +67,7 @@ export function PacienteDetailClient({
   initialNovedades,
   initialUltimoAnalisis,
   initialContextoIa,
+  initialHistorialAsistente,
   initialGemelo,
   initialUltimaSimulacion,
 }: PacienteDetailClientProps) {
@@ -77,6 +82,9 @@ export function PacienteDetailClient({
   const [novedades, setNovedades] = useState(() => sortByNewest(initialNovedades));
   const [ultimoAnalisis, setUltimoAnalisis] = useState(initialUltimoAnalisis);
   const [contextoIa, setContextoIa] = useState(initialContextoIa);
+  const [historialAsistente, setHistorialAsistente] = useState(() =>
+    sortByNewest(initialHistorialAsistente)
+  );
   const [gemelo, setGemelo] = useState(initialGemelo);
   const [ultimaSimulacion, setUltimaSimulacion] = useState(initialUltimaSimulacion);
   const [pending, setPending] = useState<PendingMap>({});
@@ -344,7 +352,11 @@ export function PacienteDetailClient({
       const nuevoContexto = await getContexto(paciente.id, token);
       setUltimoAnalisis(analisis);
       setContextoIa(nuevoContexto);
-      showSuccessToast("Analisis IA generado.");
+      showSuccessToast(
+        payload.datoMedicoId === "all" && !payload.promptUsuario.trim()
+          ? "Analisis general generado."
+          : "Analisis IA generado."
+      );
     } catch (error) {
       if (handleUnauthorized(error)) return;
       showErrorToast(error instanceof Error ? error.message : "No se pudo generar el analisis.");
@@ -353,8 +365,44 @@ export function PacienteDetailClient({
     }
   }
 
+  async function handleSubmitAsistente(payload: AsistenteMedicoFormState): Promise<boolean> {
+    if (!payload.consultaMedico.trim()) {
+      showWarningToast("La consulta para el asistente medico es obligatoria.");
+      return false;
+    }
+
+    try {
+      setSectionPending("asistente", true);
+      const consulta = await createConsultaAsistenteMedico(
+        {
+          pacienteId: paciente.id,
+          consultaMedico: payload.consultaMedico.trim(),
+        },
+        token
+      );
+      setHistorialAsistente((prev) => sortByNewest([consulta, ...prev]));
+      showSuccessToast("Consulta enviada al asistente medico.");
+      return true;
+    } catch (error) {
+      if (handleUnauthorized(error)) return false;
+      showErrorToast(
+        error instanceof Error
+          ? error.message
+          : "No se pudo consultar al asistente medico."
+      );
+      return false;
+    } finally {
+      setSectionPending("asistente", false);
+    }
+  }
+
   async function handleSubmitSimulacion(payload: SimulacionFormState) {
     if (!gemelo?.id) return;
+
+    if (!payload.motivoConsulta.trim()) {
+      showWarningToast("El motivo de consulta es obligatorio para la simulacion.");
+      return;
+    }
 
     if (!payload.tratamientoPropuesto.trim()) {
       showWarningToast("El tratamiento propuesto es obligatorio.");
@@ -366,6 +414,7 @@ export function PacienteDetailClient({
       const simulacion = await simularTratamiento(
         {
           gemeloDigitalId: gemelo.id,
+          motivoConsulta: payload.motivoConsulta.trim(),
           tratamientoPropuesto: payload.tratamientoPropuesto.trim(),
           dosisYDuracion: payload.dosisYDuracion.trim() || undefined,
         },
@@ -434,6 +483,7 @@ export function PacienteDetailClient({
       activeConsulta={activeConsulta}
       ultimoAnalisis={ultimoAnalisis}
       contextoIa={contextoIa}
+      historialAsistente={historialAsistente}
       gemelo={gemelo}
       ultimaSimulacion={ultimaSimulacion}
       pending={pending}
@@ -448,6 +498,7 @@ export function PacienteDetailClient({
       onSaveConsulta={handleSaveConsulta}
       onCloseConsulta={handleCloseConsulta}
       onSubmitAnalisis={handleSubmitAnalisis}
+      onSubmitAsistente={handleSubmitAsistente}
       onSubmitSimulacion={handleSubmitSimulacion}
       onSubmitGemeloUpdate={handleSubmitGemeloUpdate}
     />

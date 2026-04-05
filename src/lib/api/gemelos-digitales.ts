@@ -1,5 +1,14 @@
 import { apiRequest } from "@/src/lib/api/http";
-import { asRecord, pickArrayCandidate, toArray, toNumberValue, toOptionalString, toStringArray, toStringValue } from "@/src/lib/api/parsers";
+import {
+  asRecord,
+  pickArrayCandidate,
+  toArray,
+  toBooleanValue,
+  toNumberValue,
+  toOptionalString,
+  toStringArray,
+  toStringValue,
+} from "@/src/lib/api/parsers";
 import type {
   ActualizarGemeloDigitalDto,
   CreateGemeloDigitalDto,
@@ -31,6 +40,7 @@ function mapAnalisisIA(raw: unknown): SimulacionAnalisisIA | null {
 
   return {
     efectividadEstimada: toNumberValue(record.efectividadEstimada ?? record.efectividad_estimada) ?? null,
+    coherenciaClinica: toNumberValue(record.coherenciaClinica ?? record.coherencia_clinica) ?? null,
     riesgos: toStringArray(record.riesgos),
     beneficios: toStringArray(record.beneficios),
     contraindicaciones: toStringArray(record.contraindicaciones),
@@ -80,6 +90,7 @@ function mapSimulacion(raw: unknown): SimulacionTratamiento {
   return {
     id: toStringValue(record.id) ?? "",
     gemeloDigitalId: toStringValue(record.gemeloDigitalId ?? record.gemelo_digital_id) ?? "",
+    motivoConsulta: toOptionalString(record.motivoConsulta ?? record.motivo_consulta),
     tratamientoPropuesto: toStringValue(
       record.tratamientoPropuesto ?? record.tratamiento_propuesto
     ) ?? "",
@@ -92,6 +103,7 @@ function mapSimulacion(raw: unknown): SimulacionTratamiento {
     respuestaCompletaIA: toOptionalString(
       record.respuestaCompletaIA ?? record.respuesta_completa_ia
     ),
+    noRecomendado: toBooleanValue(record.noRecomendado ?? record.no_recomendado),
     modeloIAUtilizado: toOptionalString(record.modeloIAUtilizado ?? record.modelo_ia_utilizado),
     createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
   };

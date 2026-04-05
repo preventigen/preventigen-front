@@ -26,6 +26,7 @@ export type PendingMap = {
   novedades?: boolean;
   consultas?: boolean;
   analisis?: boolean;
+  asistente?: boolean;
   simulacion?: boolean;
   gemelo?: boolean;
 };
@@ -60,8 +61,13 @@ export interface AnalisisFormState {
 }
 
 export interface SimulacionFormState {
+  motivoConsulta: string;
   tratamientoPropuesto: string;
   dosisYDuracion: string;
+}
+
+export interface AsistenteMedicoFormState {
+  consultaMedico: string;
 }
 
 export interface GemeloUpdateFormState {

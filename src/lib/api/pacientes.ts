@@ -111,6 +111,7 @@ function mapPacienteBase(raw: unknown): PacienteBase {
     medicacionActual: toOptionalString(record.medicacionActual ?? record.medicacion_actual),
     presionArterial: toOptionalString(record.presionArterial ?? record.presion_arterial),
     comentarios: toOptionalString(record.comentarios),
+    alergias: toOptionalString(record.alergias),
     createdAt: toOptionalString(record.createdAt ?? record.created_at) ?? undefined,
     updatedAt: toOptionalString(record.updatedAt ?? record.updated_at) ?? undefined,
   };

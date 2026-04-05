@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/src/components/magic/ui/select";
 import { Textarea } from "@/src/components/magic/ui/textarea";
+import { LongTextBlock } from "@/src/components/medico/pacientes/detail/shared/LongTextBlock";
 import { formatDateTime } from "@/src/lib/formatters";
 import type { DatoMedico, TipoDatoMedico } from "@/src/lib/api/types";
 import {
@@ -185,7 +186,12 @@ export function DatosMedicosTab({
                     </div>
                   </div>
                 ) : (
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-heading">{dato.contenido}</p>
+                  <LongTextBlock
+                    value={dato.contenido}
+                    previewLines={7}
+                    collapseAfter={420}
+                    className="mt-3"
+                  />
                 )}
               </div>
             ))}

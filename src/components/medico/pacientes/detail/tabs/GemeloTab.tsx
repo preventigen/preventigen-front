@@ -11,8 +11,9 @@ import {
   SelectValue,
 } from "@/src/components/magic/ui/select";
 import { Textarea } from "@/src/components/magic/ui/textarea";
-import { formatDateTime } from "@/src/lib/formatters";
 import { InlineNotice } from "@/src/components/medico/pacientes/detail/shared/InlineNotice";
+import { LongTextBlock } from "@/src/components/medico/pacientes/detail/shared/LongTextBlock";
+import { formatDateTime } from "@/src/lib/formatters";
 import type {
   Consulta,
   GemeloDigital,
@@ -45,6 +46,7 @@ export function GemeloTab({
   onSubmitGemeloUpdate,
 }: GemeloTabProps) {
   const [simulacionForm, setSimulacionForm] = useState<SimulacionFormState>({
+    motivoConsulta: "",
     tratamientoPropuesto: "",
     dosisYDuracion: "",
   });
@@ -73,6 +75,18 @@ export function GemeloTab({
             </div>
           )}
 
+          <Textarea
+            value={simulacionForm.motivoConsulta}
+            onChange={(event) =>
+              setSimulacionForm((prev) => ({
+                ...prev,
+                motivoConsulta: event.target.value,
+              }))
+            }
+            className="min-h-24"
+            placeholder="Motivo de consulta"
+            disabled={!gemelo}
+          />
           <Textarea
             value={simulacionForm.tratamientoPropuesto}
             onChange={(event) =>
@@ -109,8 +123,17 @@ export function GemeloTab({
                 No hay simulaciones registradas.
               </p>
             ) : (
-              <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <div className="mt-3 space-y-4 text-sm text-muted-foreground">
+                {ultimaSimulacion.noRecomendado ? (
+                  <InlineNotice message="La IA marco esta simulacion como no recomendada. Revisa riesgos y contraindicaciones antes de avanzar." />
+                ) : null}
                 <p>{formatDateTime(ultimaSimulacion.createdAt)}</p>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Motivo de consulta</p>
+                  <p className="font-medium text-heading">
+                    {ultimaSimulacion.motivoConsulta?.trim() || "-"}
+                  </p>
+                </div>
                 <p className="font-medium text-heading">
                   {ultimaSimulacion.tratamientoPropuesto}
                 </p>
@@ -119,8 +142,21 @@ export function GemeloTab({
                   Probabilidad de exito:{" "}
                   {ultimaSimulacion.prediccionRespuesta?.probabilidadExito ?? "-"}
                 </p>
+                <p>
+                  Coherencia clinica: {ultimaSimulacion.analisisIA?.coherenciaClinica ?? "-"}
+                </p>
                 <p>Beneficios: {ultimaSimulacion.analisisIA?.beneficios?.join(", ") || "-"}</p>
                 <p>Riesgos: {ultimaSimulacion.analisisIA?.riesgos?.join(", ") || "-"}</p>
+                <p>
+                  Contraindicaciones:{" "}
+                  {ultimaSimulacion.analisisIA?.contraindicaciones?.join(", ") || "-"}
+                </p>
+                <LongTextBlock
+                  value={ultimaSimulacion.respuestaCompletaIA}
+                  emptyText="Sin respuesta completa disponible."
+                  previewLines={8}
+                  collapseAfter={520}
+                />
               </div>
             )}
           </div>
@@ -152,7 +188,7 @@ export function GemeloTab({
             <SelectContent>
               {consultas.map((consulta) => (
                 <SelectItem key={consulta.id} value={consulta.id}>
-                  {formatDateTime(consulta.createdAt)} · {consulta.estado}
+                  {formatDateTime(consulta.createdAt)} - {consulta.estado}
                 </SelectItem>
               ))}
             </SelectContent>

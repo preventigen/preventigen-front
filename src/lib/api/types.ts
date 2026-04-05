@@ -30,6 +30,7 @@ export interface PacienteBase {
   medicacionActual?: string | null;
   presionArterial?: string | null;
   comentarios?: string | null;
+  alergias?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -115,6 +116,7 @@ export interface HistorialGemeloDigital {
 
 export interface SimulacionAnalisisIA {
   efectividadEstimada?: number | null;
+  coherenciaClinica?: number | null;
   riesgos?: string[];
   beneficios?: string[];
   contraindicaciones?: string[];
@@ -139,12 +141,14 @@ export interface SimulacionPrediccionRespuesta {
 export interface SimulacionTratamiento {
   id: string;
   gemeloDigitalId: string;
+  motivoConsulta?: string | null;
   tratamientoPropuesto: string;
   dosisYDuracion?: string | null;
   analisisIA?: SimulacionAnalisisIA | null;
   prediccionRespuesta?: SimulacionPrediccionRespuesta | null;
   promptEnviado?: string | null;
   respuestaCompletaIA?: string | null;
+  noRecomendado?: boolean;
   modeloIAUtilizado?: string | null;
   createdAt?: string;
 }
@@ -191,6 +195,7 @@ export interface CreatePacienteDto {
   medicacionActual?: string;
   presionArterial?: string;
   comentarios?: string;
+  alergias?: string;
   estudios?: CreatePacienteEstudioDto[];
   novedades?: CreatePacienteNovedadDto[];
 }
@@ -208,6 +213,7 @@ export interface PatchPacienteDatosMedicosDto {
   medicacionActual?: string;
   presionArterial?: string;
   comentarios?: string;
+  alergias?: string;
 }
 
 export interface CreateDatoMedicoDto {
@@ -227,6 +233,7 @@ export interface CreateGemeloDigitalDto {
 
 export interface SimularTratamientoDto {
   gemeloDigitalId: string;
+  motivoConsulta: string;
   tratamientoPropuesto: string;
   dosisYDuracion?: string;
 }
@@ -269,4 +276,21 @@ export interface CreateAnalisisIaDto {
   datoMedicoId?: string;
   tipoPrompt?: TipoPrompt;
   promptUsuario?: string;
+}
+
+export interface AsistenteMedicoConsulta {
+  id: string;
+  pacienteId: string;
+  medicoId?: string | null;
+  consultaMedico: string;
+  promptEnviado?: string | null;
+  respuestaIA: string;
+  modeloIAUtilizado?: string | null;
+  createdAt?: string;
+  paciente?: PacienteListado | null;
+}
+
+export interface CreateAsistenteMedicoDto {
+  pacienteId: string;
+  consultaMedico: string;
 }

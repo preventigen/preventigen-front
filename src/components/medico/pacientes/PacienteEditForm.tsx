@@ -43,6 +43,7 @@ interface FormState {
   medicacionActual: string;
   presionArterial: string;
   comentarios: string;
+  alergias: string;
 }
 
 function buildInitialState(paciente: PacienteDetalle): FormState {
@@ -56,6 +57,7 @@ function buildInitialState(paciente: PacienteDetalle): FormState {
     medicacionActual: paciente.medicacionActual ?? "",
     presionArterial: paciente.presionArterial ?? "",
     comentarios: paciente.comentarios ?? "",
+    alergias: paciente.alergias ?? "",
   };
 }
 
@@ -103,6 +105,7 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
         medicacionActual: form.medicacionActual.trim(),
         presionArterial: form.presionArterial.trim(),
         comentarios: form.comentarios.trim(),
+        alergias: form.alergias.trim(),
       },
       {
         diagnosticoPrincipal: initial.diagnosticoPrincipal,
@@ -110,6 +113,7 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
         medicacionActual: initial.medicacionActual,
         presionArterial: initial.presionArterial,
         comentarios: initial.comentarios,
+        alergias: initial.alergias,
       }
     ) as PatchPacienteDatosMedicosDto;
 
@@ -277,6 +281,18 @@ export function PacienteEditForm({ token, paciente }: PacienteEditFormProps) {
               value={form.comentarios}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, comentarios: event.target.value }))
+              }
+              className="min-h-24"
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="alergias">Alergias</Label>
+            <Textarea
+              id="alergias"
+              value={form.alergias}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, alergias: event.target.value }))
               }
               className="min-h-24"
             />

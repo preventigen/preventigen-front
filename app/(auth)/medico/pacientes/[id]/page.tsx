@@ -3,6 +3,7 @@ import { PacienteHeader } from "@/src/components/medico/pacientes/PacienteHeader
 import { PacienteSummaryCard } from "@/src/components/medico/pacientes/PacienteSummaryCard";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
 import { getContexto, getUltimoAnalisis } from "@/src/lib/api/analisis-ia";
+import { listConsultasAsistenteByPaciente } from "@/src/lib/api/asistente-medico";
 import { listConsultasByPaciente } from "@/src/lib/api/consultas";
 import { listDatosMedicosByPaciente } from "@/src/lib/api/datos-medicos";
 import { listEstudiosByPaciente } from "@/src/lib/api/estudios-medicos";
@@ -71,6 +72,7 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
         novedades,
         ultimoAnalisis,
         contextoIa,
+        historialAsistente,
         gemeloData,
       ] = await Promise.all([
         getPacienteById(pacienteId, token),
@@ -80,6 +82,7 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
         listNovedadesByPaciente(pacienteId, token),
         getUltimoAnalisis(pacienteId, token),
         getContexto(pacienteId, token),
+        listConsultasAsistenteByPaciente(pacienteId, token),
         getGemeloData(pacienteId, token),
       ]);
 
@@ -91,6 +94,7 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
         novedades,
         ultimoAnalisis,
         contextoIa,
+        historialAsistente,
         gemelo: gemeloData.gemelo,
         ultimaSimulacion: gemeloData.ultimaSimulacion,
       };
@@ -134,6 +138,7 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
         initialNovedades={pacienteResult.novedades}
         initialUltimoAnalisis={pacienteResult.ultimoAnalisis}
         initialContextoIa={pacienteResult.contextoIa}
+        initialHistorialAsistente={pacienteResult.historialAsistente}
         initialGemelo={pacienteResult.gemelo}
         initialUltimaSimulacion={pacienteResult.ultimaSimulacion}
       />

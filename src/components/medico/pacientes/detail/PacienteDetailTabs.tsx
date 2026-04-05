@@ -9,6 +9,7 @@ import { AnalisisIATab } from "@/src/components/medico/pacientes/detail/tabs/Ana
 import { GemeloTab } from "@/src/components/medico/pacientes/detail/tabs/GemeloTab";
 import type {
   AnalisisIA,
+  AsistenteMedicoConsulta,
   ContextoAnalisisIA,
   Consulta,
   DatoMedico,
@@ -18,6 +19,7 @@ import type {
   SimulacionTratamiento,
 } from "@/src/lib/api/types";
 import type {
+  AsistenteMedicoFormState,
   AnalisisFormState,
   ConsultaFormState,
   DatoMedicoFormState,
@@ -39,6 +41,7 @@ interface PacienteDetailTabsProps {
   activeConsulta: Consulta | null;
   ultimoAnalisis: AnalisisIA | null;
   contextoIa: ContextoAnalisisIA | null;
+  historialAsistente: AsistenteMedicoConsulta[];
   gemelo: GemeloDigital | null;
   ultimaSimulacion: SimulacionTratamiento | null;
   pending: PendingMap;
@@ -53,6 +56,7 @@ interface PacienteDetailTabsProps {
   onSaveConsulta: (id: string, payload: ConsultaFormState) => Promise<void>;
   onCloseConsulta: (id: string) => Promise<void>;
   onSubmitAnalisis: (payload: AnalisisFormState) => Promise<void>;
+  onSubmitAsistente: (payload: AsistenteMedicoFormState) => Promise<boolean>;
   onSubmitSimulacion: (payload: SimulacionFormState) => Promise<void>;
   onSubmitGemeloUpdate: (payload: GemeloUpdateFormState) => Promise<void>;
 }
@@ -75,6 +79,7 @@ export function PacienteDetailTabs({
   activeConsulta,
   ultimoAnalisis,
   contextoIa,
+  historialAsistente,
   gemelo,
   ultimaSimulacion,
   pending,
@@ -89,9 +94,12 @@ export function PacienteDetailTabs({
   onSaveConsulta,
   onCloseConsulta,
   onSubmitAnalisis,
+  onSubmitAsistente,
   onSubmitSimulacion,
   onSubmitGemeloUpdate,
 }: PacienteDetailTabsProps) {
+  const iaCount = (ultimoAnalisis ? 1 : 0) + historialAsistente.length;
+
   return (
     <Tabs
       value={activeTab}
@@ -118,7 +126,7 @@ export function PacienteDetailTabs({
         </TabsTrigger>
         <TabsTrigger value="ia">
           IA
-          {ultimoAnalisis ? <TriggerCount>1</TriggerCount> : null}
+          {iaCount > 0 ? <TriggerCount>{iaCount}</TriggerCount> : null}
         </TabsTrigger>
         <TabsTrigger value="gemelo">
           Gemelo
@@ -180,8 +188,11 @@ export function PacienteDetailTabs({
           datosMedicos={datosMedicos}
           ultimoAnalisis={ultimoAnalisis}
           contextoIa={contextoIa}
+          historialAsistente={historialAsistente}
           isPending={Boolean(pending.analisis)}
+          isAssistantPending={Boolean(pending.asistente)}
           onSubmitAnalisis={onSubmitAnalisis}
+          onSubmitAsistente={onSubmitAsistente}
         />
       </TabsContent>
 

@@ -1,6 +1,47 @@
 # PreventiGen Backend - Guia de endpoints para Front
 
-Fecha de relevamiento: 2026-03-14
+Fecha de relevamiento: 2026-04-05
+
+## 0. Ultimos cambios para actualizar en el front
+
+Pull relevado: `17bffd4 -> ef0e15c`
+
+Cambios con impacto real en integracion:
+
+- Nuevo modulo y nuevas rutas de `asistente-medico`:
+- `POST /asistente-medico`
+- `GET /asistente-medico/paciente/:pacienteId`
+- `GET /asistente-medico/:id`
+- `pacientes` ahora soporta `alergias`:
+- nuevo campo opcional en `POST /pacientes`
+- nuevo campo opcional en `PATCH /pacientes/:id/datos-medicos`
+- el campo tambien aparece en respuestas de paciente
+- `POST /pacientes` ahora permite bootstrap inicial del paciente con relaciones:
+- `estudios?: { nombreEstudio, fecha?, observaciones? }[]`
+- `novedades?: { tipoEvento?, descripcion?, zonaAfectada?, gravedad?, observaciones? }[]`
+- `POST /gemelos-digitales/simular` cambio de contrato:
+- ahora exige `motivoConsulta`
+- la respuesta y el historial de simulaciones ahora incluyen `motivoConsulta`
+- la respuesta y el historial ahora incluyen `noRecomendado: boolean`
+- `analisisIA` agrega `coherenciaClinica: number`
+- `POST /analisis-ia` mantiene la misma ruta, pero el analisis ahora usa mas contexto clinico:
+- consultas previas
+- estudios
+- novedades
+- `alergias`
+- memoria previa en `previo_ia`
+- cambio util para UI: `respuestaIA` ahora se guarda limpia, sin el bloque final `RESUMEN_CONTEXTO: ...`
+- Cambio interno sin impacto de ruta:
+- el modulo se movio de carpeta `analisis-ia` a `analisis-ia-general`
+- la ruta publica sigue siendo `POST/GET /analisis-ia`
+
+Checklist rapido de actualizacion en front:
+
+- agregar pantallas o cliente API para `asistente-medico`
+- agregar `alergias` al formulario de alta/edicion de paciente
+- si el alta de paciente inicializa datos, soportar `estudios[]` y `novedades[]`
+- actualizar el form de simulacion de gemelo para enviar `motivoConsulta`
+- contemplar en resultados de simulacion `noRecomendado` y `analisisIA.coherenciaClinica`
 
 ## 1. Base de integracion
 
@@ -224,6 +265,19 @@ Enums utiles:
 - `medicacionActual`: `string` opcional
 - `presionArterial`: `string` opcional
 - `comentarios`: `string` opcional
+- `alergias`: `string` opcional
+- `estudios`: array opcional para crear estudios al mismo tiempo
+- shape por item:
+- `nombreEstudio`: `string` requerido
+- `fecha`: `string` fecha opcional
+- `observaciones`: `string` opcional
+- `novedades`: array opcional para crear novedades al mismo tiempo
+- shape por item:
+- `tipoEvento`: `string` opcional
+- `descripcion`: `string` opcional
+- `zonaAfectada`: `string` opcional
+- `gravedad`: `string` opcional. Recomendado enviar `"leve" | "moderada" | "grave"`
+- `observaciones`: `string` opcional
 - El `medicoId` no se envia; lo toma del JWT
 - Respuesta `201`:
 - `id`
@@ -237,8 +291,11 @@ Enums utiles:
 - `medicacionActual`
 - `presionArterial`
 - `comentarios`
+- `alergias`
 - `createdAt`
 - `updatedAt`
+- `estudios`: array relacionado si se crearon en la misma alta
+- `novedades`: array relacionado si se crearon en la misma alta
 - Errores:
 - `400` validacion
 - `401` token invalido
@@ -273,6 +330,7 @@ Enums utiles:
 - `medicacionActual`
 - `presionArterial`
 - `comentarios`
+- `alergias`
 - `createdAt`
 - `updatedAt`
 - relaciones incluidas:
@@ -309,6 +367,7 @@ Enums utiles:
 - `medicacionActual`: `string`
 - `presionArterial`: `string`
 - `comentarios`: `string`
+- `alergias`: `string`
 - Respuesta `200`: mismo shape que `GET /pacientes/:id`
 - Errores:
 - `400` validacion
@@ -662,6 +721,19 @@ Enum relevante:
 
 Requiere `GOOGLE_GEMINI_API_KEY` configurada para crear analisis.
 
+Actualizacion reciente a tener en cuenta:
+
+- La ruta publica sigue siendo `/analisis-ia`
+- Internamente el modulo paso a llamarse `analisis-ia-general`, pero eso no cambia el consumo del front
+- El prompt ahora incorpora:
+- `consultas`
+- `estudios`
+- `novedades`
+- `alergias`
+- contexto acumulado previo en `previo_ia`
+- Si existe gemelo digital del paciente, al generar el analisis se vuelve a marcar con estado `"actualizado"`
+- `respuestaIA` ahora se persiste sin el sufijo `RESUMEN_CONTEXTO`, por lo que el texto mostrado al usuario queda mas limpio
+
 ### `POST /analisis-ia`
 
 - Auth: si
@@ -674,6 +746,7 @@ Requiere `GOOGLE_GEMINI_API_KEY` configurada para crear analisis.
 - si `datoMedicoId` viene, analiza solo ese dato medico
 - si no viene, usa todos los datos medicos del paciente
 - si existe gemelo digital del paciente, lo asocia automaticamente
+- usa tambien contexto de consultas, estudios, novedades, alergias y memoria previa del paciente
 - Respuesta `201`:
 - `id`
 - `pacienteId`
@@ -684,6 +757,7 @@ Requiere `GOOGLE_GEMINI_API_KEY` configurada para crear analisis.
 - `respuestaIA`
 - `resumenContexto`
 - `fechaGeneracion`
+- Nota para front: `respuestaIA` no incluye el marcador interno `RESUMEN_CONTEXTO`
 - Errores:
 - `400` validacion
 - `400` si falta `GOOGLE_GEMINI_API_KEY`
@@ -856,12 +930,14 @@ Requiere `GOOGLE_GEMINI_API_KEY` para listar modelos y simular tratamientos.
 - Campos por item:
 - `id`
 - `gemeloDigitalId`
+- `motivoConsulta`
 - `tratamientoPropuesto`
 - `dosisYDuracion`
 - `analisisIA`: objeto JSON
 - `prediccionRespuesta`: objeto JSON
 - `promptEnviado`
 - `respuestaCompletaIA`
+- `noRecomendado`: `boolean`
 - `modeloIAUtilizado`
 - `createdAt`
 - Errores:
@@ -872,15 +948,18 @@ Requiere `GOOGLE_GEMINI_API_KEY` para listar modelos y simular tratamientos.
 - Auth: si
 - Body:
 - `gemeloDigitalId`: `string` UUID requerido
+- `motivoConsulta`: `string` requerido
 - `tratamientoPropuesto`: `string` requerido
 - `dosisYDuracion`: `string` opcional
 - Respuesta `201`:
 - `id`
 - `gemeloDigitalId`
+- `motivoConsulta`
 - `tratamientoPropuesto`
 - `dosisYDuracion`
 - `analisisIA`:
 - `efectividadEstimada`: `number`
+- `coherenciaClinica`: `number`
 - `riesgos`: `string[]`
 - `beneficios`: `string[]`
 - `contraindicaciones`: `string[]`
@@ -897,8 +976,10 @@ Requiere `GOOGLE_GEMINI_API_KEY` para listar modelos y simular tratamientos.
 - `parametrosMonitoreo`: `string[]`
 - `promptEnviado`: `string`
 - `respuestaCompletaIA`: `string`
+- `noRecomendado`: `boolean`
 - `modeloIAUtilizado`: `string`, hoy se guarda `"gemini-2.5-flash"`
 - `createdAt`
+- Nota para front: si el analisis detecta que el tratamiento no es aconsejable, `respuestaCompletaIA` puede empezar con `NO SE RECOMIENDA SEGUIR ESE TRATAMIENTO`, y ademas el backend deja `noRecomendado: true`
 - Errores:
 - `400` validacion
 - `400` si falta `GOOGLE_GEMINI_API_KEY`
@@ -938,10 +1019,82 @@ Requiere `GOOGLE_GEMINI_API_KEY` para listar modelos y simular tratamientos.
 - `400` validacion
 - `404` gemelo digital no encontrado o ajeno
 
-## 13. Resumen rapido por entidad para front
+## 13. Asistente medico
+
+Requiere `GOOGLE_GEMINI_API_KEY` configurada para crear consultas al asistente.
+
+Objetivo:
+
+- hacer preguntas puntuales del medico tratante sobre un paciente
+- no reemplaza el analisis general ni la simulacion de tratamiento
+- responde en texto libre, no en JSON
+
+### `POST /asistente-medico`
+
+- Auth: si
+- Body:
+- `pacienteId`: `string` UUID requerido
+- `consultaMedico`: `string` requerido
+- Comportamiento:
+- arma contexto con datos del paciente, consultas, estudios y novedades
+- responde solo consultas clinicas; si la pregunta se va de ese objetivo, la IA devuelve un mensaje fijo de rechazo
+- Respuesta `201`:
+- `id`
+- `pacienteId`
+- `medicoId`
+- `consultaMedico`
+- `promptEnviado`
+- `respuestaIA`
+- `modeloIAUtilizado`: `string`, hoy `"gemini-2.5-flash"`
+- `createdAt`
+- Errores:
+- `400` validacion
+- `400` si falta `GOOGLE_GEMINI_API_KEY`
+- `400` si Gemini falla
+- `404` paciente no encontrado o ajeno
+
+### `GET /asistente-medico/paciente/:pacienteId`
+
+- Auth: si
+- Params:
+- `pacienteId`: `string`
+- Respuesta `200`: array del historial de consultas al asistente de ese paciente
+- Campos por item:
+- `id`
+- `pacienteId`
+- `medicoId`
+- `consultaMedico`
+- `promptEnviado`
+- `respuestaIA`
+- `modeloIAUtilizado`
+- `createdAt`
+- Errores:
+- `404` paciente no encontrado o ajeno
+
+### `GET /asistente-medico/:id`
+
+- Auth: si
+- Params:
+- `id`: `string`
+- Respuesta `200`:
+- `id`
+- `pacienteId`
+- `medicoId`
+- `consultaMedico`
+- `promptEnviado`
+- `respuestaIA`
+- `modeloIAUtilizado`
+- `createdAt`
+- `paciente`: objeto paciente relacionado
+- Errores:
+- `404` consulta no encontrada o ajena
+
+## 14. Resumen rapido por entidad para front
 
 - Paciente:
 - alta y edicion separadas entre datos personales y datos medicos generales
+- ahora tambien soporta `alergias`
+- en el alta puede crear `estudios` y `novedades` en el mismo request
 - `GET /pacientes/:id` no trae `datosMedicos`; esos salen por `/datos-medicos/paciente/:pacienteId`
 
 - Consulta:
@@ -961,18 +1114,26 @@ Requiere `GOOGLE_GEMINI_API_KEY` para listar modelos y simular tratamientos.
 
 - Analisis IA:
 - devuelve texto largo (`prompt`, `respuestaIA`) mas resumen corto (`resumenContexto`)
+- ahora usa mas contexto clinico y `respuestaIA` llega sin el bloque tecnico `RESUMEN_CONTEXTO`
 
 - Gemelo digital:
 - uno por paciente
 - acumula `historialActualizaciones`
 - las simulaciones guardan tanto JSON parseado como la respuesta completa del modelo
+- ahora cada simulacion guarda `motivoConsulta` y `noRecomendado`
 
-## 14. Observaciones tecnicas que impactan al front
+- Asistente medico:
+- nuevo flujo para preguntas clinicas puntuales
+- guarda historial por paciente
+- devuelve texto libre y el prompt completo enviado a IA
+
+## 15. Observaciones tecnicas que impactan al front
 
 - `POST /auth/login` y todos los `POST` devuelven `201`, no `200`
 - No hay paginacion, filtros ni query params en ningun listado
 - No hay endpoints multipart ni subida de archivos
 - Las respuestas no estan normalizadas con DTOs de salida; muchas devuelven entidades TypeORM con relaciones segun el caso
 - Varias respuestas incluyen texto potencialmente largo: `prompt`, `respuestaIA`, `respuestaCompletaIA`, `analisisIA`
+- `POST /pacientes` puede devolver relaciones `estudios` y `novedades` si se cargan en la misma alta
 - `GET /gemelos-digitales/modelos-disponibles` depende de un proveedor externo y no tiene contrato estable
 - Las rutas de medico parecen pensadas para administracion, pero hoy estan abiertas a cualquier medico autenticado

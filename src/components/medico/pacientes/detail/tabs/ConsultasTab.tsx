@@ -5,6 +5,7 @@ import { Badge } from "@/src/components/magic/ui/badge";
 import { Button } from "@/src/components/magic/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/magic/ui/card";
 import { Textarea } from "@/src/components/magic/ui/textarea";
+import { LongTextBlock } from "@/src/components/medico/pacientes/detail/shared/LongTextBlock";
 import { formatDateTime } from "@/src/lib/formatters";
 import type { Consulta } from "@/src/lib/api/types";
 import type { ConsultaFormState } from "@/src/components/medico/pacientes/detail/shared/utils";
@@ -136,12 +137,34 @@ export function ConsultasTab({
                   <p className="font-medium text-heading">{formatDateTime(consulta.createdAt)}</p>
                   <Badge variant="outline">{consulta.estado}</Badge>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Detalles: {consulta.detalles?.trim() || "-"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Tratamiento: {consulta.tratamientoIndicado?.trim() || "-"}
-                </p>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      Detalles
+                    </p>
+                    <LongTextBlock
+                      value={consulta.detalles}
+                      emptyText="-"
+                      previewLines={5}
+                      collapseAfter={320}
+                      className="mt-1"
+                      contentClassName="text-muted-foreground"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                      Tratamiento
+                    </p>
+                    <LongTextBlock
+                      value={consulta.tratamientoIndicado}
+                      emptyText="-"
+                      previewLines={5}
+                      collapseAfter={320}
+                      className="mt-1"
+                      contentClassName="text-muted-foreground"
+                    />
+                  </div>
+                </div>
               </div>
             ))
           )}

@@ -44,6 +44,12 @@ export function PacienteSummaryCard({ paciente }: PacienteSummaryCardProps) {
           <p className="font-medium text-heading">{renderValue(paciente.presionArterial)}</p>
         </div>
         <div className="sm:col-span-2 xl:col-span-3">
+          <p className="text-muted-foreground">Alergias</p>
+          <p className="font-medium text-heading whitespace-pre-wrap">
+            {renderValue(paciente.alergias)}
+          </p>
+        </div>
+        <div className="sm:col-span-2 xl:col-span-3">
           <p className="text-muted-foreground">Antecedentes medicos</p>
           <p className="font-medium text-heading whitespace-pre-wrap">
             {renderValue(paciente.antecedentesMedicos)}

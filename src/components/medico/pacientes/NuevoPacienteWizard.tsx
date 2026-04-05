@@ -37,6 +37,7 @@ interface PacienteFormState {
   medicacionActual: string;
   presionArterial: string;
   comentarios: string;
+  alergias: string;
 }
 
 interface EstudioFormState {
@@ -55,6 +56,7 @@ const initialPacienteForm: PacienteFormState = {
   medicacionActual: "",
   presionArterial: "",
   comentarios: "",
+  alergias: "",
 };
 
 const initialEstudioForm: EstudioFormState = {
@@ -152,6 +154,7 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
           medicacionActual: pacienteForm.medicacionActual.trim() || undefined,
           presionArterial: pacienteForm.presionArterial.trim() || undefined,
           comentarios: pacienteForm.comentarios.trim() || undefined,
+          alergias: pacienteForm.alergias.trim() || undefined,
         }),
         token
       );
@@ -423,6 +426,18 @@ export function NuevoPacienteWizard({ token }: NuevoPacienteWizardProps) {
                   value={pacienteForm.comentarios}
                   onChange={(event) =>
                     setPacienteForm((prev) => ({ ...prev, comentarios: event.target.value }))
+                  }
+                  className="min-h-24"
+                />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="alergias">Alergias</Label>
+                <Textarea
+                  id="alergias"
+                  value={pacienteForm.alergias}
+                  onChange={(event) =>
+                    setPacienteForm((prev) => ({ ...prev, alergias: event.target.value }))
                   }
                   className="min-h-24"
                 />
