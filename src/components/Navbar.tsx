@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { MenuIcon } from "lucide-react";
 import { Container } from "./ui/Container";
 import {
@@ -37,6 +37,11 @@ export function Navbar() {
   );
 
   const [open, setOpen] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   return (
     <>
@@ -84,58 +89,68 @@ export function Navbar() {
             </div>
 
             {/* Mobile */}
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <button
-                  className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
-                  aria-label="Abrir menú"
-                  type="button"
-                >
-                  <MenuIcon className="h-5 w-5" />
-                </button>
-              </SheetTrigger>
+            {mounted ? (
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
+                    aria-label="Abrir menú"
+                    type="button"
+                  >
+                    <MenuIcon className="h-5 w-5" />
+                  </button>
+                </SheetTrigger>
 
-              <SheetContent side="right" className="border-border bg-surface">
-                <SheetHeader>
-                  <SheetTitle className="text-heading">Menú</SheetTitle>
-                </SheetHeader>
+                <SheetContent side="right" className="border-border bg-surface">
+                  <SheetHeader>
+                    <SheetTitle className="text-heading">Menú</SheetTitle>
+                  </SheetHeader>
 
-                <div className="px-4 pb-6">
-                  <ul className="flex flex-col gap-3">
-                    {items.map((it) => (
-                      <li key={it.href}>
-                        <a
-                          href={it.href}
-                          className="block rounded-xl px-3 py-2 text-foreground hover:bg-surface-muted"
-                          onClick={() => setOpen(false)}
+                  <div className="px-4 pb-6">
+                    <ul className="flex flex-col gap-3">
+                      {items.map((it) => (
+                        <li key={it.href}>
+                          <a
+                            href={it.href}
+                            className="block rounded-xl px-3 py-2 text-foreground hover:bg-surface-muted"
+                            onClick={() => setOpen(false)}
+                          >
+                            {it.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-6">
+                      <a href="#contacto" onClick={() => setOpen(false)} className="block w-full">
+                        <ShimmerButton
+                          shimmerColor="rgba(255, 255, 255, 0.35)"
+                          shimmerDuration="4.5s"
+                          shimmerSize="0.12em"
+                          borderRadius="14px"
+                          background="var(--color-primary)"
+                          className="h-11 w-full px-6 text-sm font-medium text-primary-foreground shadow-sm"
                         >
-                          {it.label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                          Solicitar contacto
+                        </ShimmerButton>
+                      </a>
 
-                  <div className="mt-6">
-                    <a href="#contacto" onClick={() => setOpen(false)} className="block w-full">
-                      <ShimmerButton
-                        shimmerColor="rgba(255, 255, 255, 0.35)"
-                        shimmerDuration="4.5s"
-                        shimmerSize="0.12em"
-                        borderRadius="14px"
-                        background="var(--color-primary)"
-                        className="h-11 w-full px-6 text-sm font-medium text-primary-foreground shadow-sm"
-                      >
-                        Solicitar contacto
-                      </ShimmerButton>
-                    </a>
-
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      No es atención de urgencias. Te contactamos para orientarte.
-                    </p>
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        No es atención de urgencias. Te contactamos para orientarte.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            ) : (
+              <button
+                className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
+                aria-label="Abrir menú"
+                type="button"
+              >
+                <MenuIcon className="h-5 w-5" />
+              </button>
+            )}
           </nav>
         </Container>
       </header>

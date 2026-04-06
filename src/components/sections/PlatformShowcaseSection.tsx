@@ -1,6 +1,7 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
+import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import {
   Activity,
@@ -17,6 +18,11 @@ import { Container } from "../ui/Container";
 import { SectionHeader } from "../ui/SectionHeader";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { MagicCard } from "@/components/ui/magic-card";
+import dashboardImage from "../../../public/images/1 dashboard medico.png";
+import patientImage from "../../../public/images/2 carga nuevo paciente.png";
+import analysisImage from "../../../public/images/3 analisis IA.png";
+import twinImage from "../../../public/images/4 gemelo.png";
+import assistantImage from "../../../public/images/5 asistente medico.png";
 
 type Feature = {
   id?: string;
@@ -25,10 +31,8 @@ type Feature = {
   intro: string;
   description: string;
   slogan: string;
-  imageSrc: string;
+  image: StaticImageData;
   imageAlt: string;
-  imageWidth: number;
-  imageHeight: number;
   imageKind: "wide" | "balanced" | "tall";
   imageLabel: string;
   chips: string[];
@@ -69,10 +73,8 @@ const features: Feature[] = [
     description:
       "Una visión rápida y clara para priorizar y tomar decisiones con contexto.",
     slogan: "Visión rápida. Decisiones con contexto.",
-    imageSrc: "/images/1 dashboard medico.png",
+    image: dashboardImage,
     imageAlt: "Dashboard médico de PreventiGen con métricas y resumen clínico.",
-    imageWidth: 1920,
-    imageHeight: 838,
     imageKind: "wide",
     imageLabel: "Resumen general",
     chips: ["Pacientes activos", "Alertas relevantes", "Últimas consultas"],
@@ -92,10 +94,8 @@ const features: Feature[] = [
     description:
       "Todo el historial en un solo lugar, accesible y ordenado.",
     slogan: "Orden clínico desde el primer ingreso.",
-    imageSrc: "/images/2 carga nuevo paciente.png",
+    image: patientImage,
     imageAlt: "Pantalla de carga de nuevo paciente en PreventiGen.",
-    imageWidth: 1920,
-    imageHeight: 1605,
     imageKind: "balanced",
     imageLabel: "Nuevo paciente",
     chips: ["Datos del paciente", "Evoluciones", "Documentación"],
@@ -116,10 +116,8 @@ const features: Feature[] = [
     description:
       "Te brinda un panorama claro y resumido para que llegues a la consulta con la mejor información posible.",
     slogan: "Más precisión. Mejor criterio clínico.",
-    imageSrc: "/images/3 analisis IA.png",
+    image: analysisImage,
     imageAlt: "Pantalla de análisis clínico con IA en PreventiGen.",
-    imageWidth: 1920,
-    imageHeight: 838,
     imageKind: "wide",
     imageLabel: "Análisis previo",
     chips: ["Historial clínico", "Tratamientos previos", "Síntomas recurrentes"],
@@ -140,10 +138,8 @@ const features: Feature[] = [
     description:
       "Reducí el margen de error y tomá decisiones con mayor seguridad.",
     slogan: "Menos incertidumbre. Más seguridad clínica.",
-    imageSrc: "/images/4 gemelo.png",
+    image: twinImage,
     imageAlt: "Interfaz de gemelo digital del paciente en PreventiGen.",
-    imageWidth: 1920,
-    imageHeight: 3264,
     imageKind: "tall",
     imageLabel: "Simulación clínica",
     chips: ["Riesgos potenciales", "Contraindicaciones", "Resultados posibles"],
@@ -162,10 +158,8 @@ const features: Feature[] = [
     description:
       "Una segunda mirada, siempre disponible.",
     slogan: "Explorá hipótesis con respaldo contextual.",
-    imageSrc: "/images/5 asistente medico.png",
+    image: assistantImage,
     imageAlt: "Asistente médico con IA integrado en PreventiGen.",
-    imageWidth: 1920,
-    imageHeight: 3264,
     imageKind: "tall",
     imageLabel: "Asistente médico",
     chips: ["Consultas específicas", "Diagnósticos", "Alternativas"],
@@ -301,10 +295,8 @@ function ProductShot({
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(45,212,191,0.12),transparent_48%)]"
         />
         <Image
-          src={feature.imageSrc}
+          src={feature.image}
           alt={feature.imageAlt}
-          width={feature.imageWidth}
-          height={feature.imageHeight}
           sizes="(min-width: 1280px) 36rem, (min-width: 1024px) 42vw, 100vw"
           className={`relative z-10 rounded-[18px] shadow-[0_24px_60px_rgba(15,23,42,0.14)] ${imageClassName}`}
         />
