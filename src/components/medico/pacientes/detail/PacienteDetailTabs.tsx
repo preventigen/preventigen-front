@@ -16,6 +16,7 @@ import type {
   EstudioMedico,
   GemeloDigital,
   NovedadClinica,
+  PacienteDetalle,
   SimulacionTratamiento,
 } from "@/src/lib/api/types";
 import type {
@@ -34,6 +35,7 @@ import type {
 interface PacienteDetailTabsProps {
   activeTab: DetailTabValue;
   onTabChange: (value: DetailTabValue) => void;
+  paciente: PacienteDetalle;
   datosMedicos: DatoMedico[];
   estudios: EstudioMedico[];
   novedades: NovedadClinica[];
@@ -72,6 +74,7 @@ function TriggerCount({ children }: { children: React.ReactNode }) {
 export function PacienteDetailTabs({
   activeTab,
   onTabChange,
+  paciente,
   datosMedicos,
   estudios,
   novedades,
@@ -136,6 +139,7 @@ export function PacienteDetailTabs({
 
       <TabsContent value="resumen">
         <ResumenTab
+          paciente={paciente}
           activeConsulta={activeConsulta}
           ultimoAnalisis={ultimoAnalisis}
           gemelo={gemelo}

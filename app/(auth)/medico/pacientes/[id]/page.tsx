@@ -1,6 +1,5 @@
 import { PacienteDetailClient } from "@/src/components/medico/pacientes/PacienteDetailClient";
 import { PacienteHeader } from "@/src/components/medico/pacientes/PacienteHeader";
-import { PacienteSummaryCard } from "@/src/components/medico/pacientes/PacienteSummaryCard";
 import { ErrorState } from "@/src/components/medico/states/ErrorState";
 import { getContexto, getUltimoAnalisis } from "@/src/lib/api/analisis-ia";
 import { listConsultasAsistenteByPaciente } from "@/src/lib/api/asistente-medico";
@@ -128,7 +127,6 @@ export default async function PacienteDetallePage({ params }: PacienteDetallePag
   return (
     <div className="space-y-6">
       <PacienteHeader pacienteId={pacienteResult.paciente.id} nombreCompleto={nombreCompleto} />
-      <PacienteSummaryCard paciente={pacienteResult.paciente} />
       <PacienteDetailClient
         token={token}
         paciente={pacienteResult.paciente}

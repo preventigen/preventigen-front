@@ -476,6 +476,7 @@ export function PacienteDetailClient({
     <PacienteDetailTabs
       activeTab={activeTab}
       onTabChange={handleTabChange}
+      paciente={paciente}
       datosMedicos={datosMedicos}
       estudios={estudios}
       novedades={novedades}
