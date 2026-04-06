@@ -420,6 +420,8 @@ export function PacienteDetailClient({
         },
         token
       );
+      console.log("[GemeloTab] Respuesta simulacion de tratamiento:", simulacion);
+      console.log("[GemeloTab] Respuesta completa IA:", simulacion.respuestaCompletaIA);
       setUltimaSimulacion(simulacion);
       showSuccessToast("Simulacion completada.");
     } catch (error) {
