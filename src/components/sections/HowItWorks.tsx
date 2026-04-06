@@ -75,7 +75,7 @@ export function HowItWorks() {
                     {/* Icon container con look tech sobrio */}
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl
                                     bg-gradient-to-br from-accent/15 to-primary/10
-                                    text-accent ring-1 ring-accent/20
+                                    text-foreground ring-1 ring-accent/20
                                     transition-transform duration-300 group-hover:scale-[1.03]">
                       <step.Icon className="h-5 w-5" />
                     </div>

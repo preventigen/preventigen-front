@@ -89,7 +89,7 @@ export function FAQSection() {
               <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[520px] -translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
 
               <div className="flex items-start gap-3 border-b border-border/60 px-6 py-5">
-                <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-foreground">
                   <HelpCircle className="h-5 w-5" />
                 </div>
                 <div>

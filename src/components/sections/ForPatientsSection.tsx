@@ -71,7 +71,7 @@ function BenefitCard({ item }: { item: Benefit }) {
       <div className="group rounded-2xl border border-border/80 bg-surface/70 p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent ring-1 ring-accent/20">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-foreground ring-1 ring-accent/20">
               <Icon className="h-5 w-5" />
             </div>
             <div>
@@ -91,7 +91,7 @@ function BenefitCard({ item }: { item: Benefit }) {
         <p className="mt-3 text-muted-foreground leading-relaxed">{item.text}</p>
 
         <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
-          <Check className="h-4 w-4 text-accent" />
+          <Check className="h-4 w-4 text-foreground" />
           Orientación clara, sin urgencias
         </div>
       </div>
@@ -143,7 +143,7 @@ export function ForPatientsSection() {
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/50 p-4">
-                    <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-accent/12 text-accent ring-1 ring-accent/20">
+                    <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-accent/12 text-foreground ring-1 ring-accent/20">
                       <ShieldCheck className="h-4.5 w-4.5" />
                     </span>
                     <div>
@@ -155,7 +155,7 @@ export function ForPatientsSection() {
                   </div>
 
                   <div className="flex items-start gap-3 rounded-2xl border border-border/70 bg-background/50 p-4">
-                    <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-accent/12 text-accent ring-1 ring-accent/20">
+                    <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-accent/12 text-foreground ring-1 ring-accent/20">
                       <HeartPulse className="h-4.5 w-4.5" />
                     </span>
                     <div>

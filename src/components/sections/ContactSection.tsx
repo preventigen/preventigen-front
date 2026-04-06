@@ -122,7 +122,7 @@ export function ContactSection() {
 
               <div className="relative">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-foreground">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div>

@@ -91,7 +91,7 @@ function PillarCard({ item }: { item: Pillar }) {
       <div className="group rounded-2xl border border-border/80 bg-surface/70 p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent ring-1 ring-accent/20">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-foreground ring-1 ring-accent/20">
               <Icon className="h-5 w-5" />
             </div>
             <div>
@@ -111,7 +111,7 @@ function PillarCard({ item }: { item: Pillar }) {
         <p className="mt-3 text-muted-foreground leading-relaxed">{item.text}</p>
 
         <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
-          <CheckCircle2 className="h-4 w-4 text-accent" />
+          <CheckCircle2 className="h-4 w-4 text-foreground" />
           Enfoque clínico y preventivo
         </div>
       </div>
@@ -126,7 +126,7 @@ function TimelineStep({ step, idx }: { step: Step; idx: number }) {
     <div className="relative flex gap-4">
       {/* Line */}
       <div className="relative flex flex-col items-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/12 text-accent ring-1 ring-accent/20">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/12 text-foreground ring-1 ring-accent/20">
           <Icon className="h-5 w-5" />
         </div>
         <div className="mt-2 h-full w-px bg-border" />
@@ -218,7 +218,7 @@ export function MedicalCredibilitySection() {
             >
               <div className="rounded-3xl border border-accent/25 bg-accent/10 p-7 shadow-sm backdrop-blur-sm">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-background/60 text-accent ring-1 ring-accent/20">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-background/60 text-foreground ring-1 ring-accent/20">
                     <ShieldCheck className="h-5 w-5" />
                   </div>
                   <div>

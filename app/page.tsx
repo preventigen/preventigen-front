@@ -5,9 +5,7 @@ import { HeroSection } from "@/src/components/sections/HeroSection";
 import { TrustBar } from "@/src/components/sections/TrustBar";
 import { HowItWorks } from "@/src/components/sections/HowItWorks";
 import { WhatIsPreventiGen } from "@/src/components/sections/WhatIsPreventiGen";
-import { ECAMMSection } from "@/src/components/sections/ECAMMSection";
-import { DigitalTwinSection } from "@/src/components/sections/DigitalTwinSection";
-import { AIDataSection } from "@/src/components/sections/AIDataSection";
+import { PlatformShowcaseSection } from "@/src/components/sections/PlatformShowcaseSection";
 import { ForPatientsSection } from "@/src/components/sections/ForPatientsSection";
 import { MedicalCredibilitySection } from "@/src/components/sections/MedicalCredibilitySection";
 import { FAQSection } from "@/src/components/sections/FAQSection";
@@ -30,9 +28,7 @@ export default function Home() {
         <TrustBar />
         <HowItWorks />
         <WhatIsPreventiGen />
-        <ECAMMSection />
-        <DigitalTwinSection />
-        <AIDataSection />
+        <PlatformShowcaseSection />
         <ForPatientsSection />
         <MedicalCredibilitySection />
         <FAQSection />

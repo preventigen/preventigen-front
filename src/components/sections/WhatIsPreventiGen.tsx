@@ -118,7 +118,7 @@ export function WhatIsPreventiGen() {
                   "Plan personalizado con seguimiento y acompañamiento.",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-accent" />
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-foreground" />
                     <p className="text-foreground leading-relaxed">{item}</p>
                   </li>
                 ))}
@@ -132,7 +132,7 @@ export function WhatIsPreventiGen() {
           <BlurFade inView delay={0.12} className="lg:col-span-2">
             <SurfaceCard className="lg:col-span-2" accent>
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/15 text-accent ring-1 ring-accent/20">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/15 text-foreground ring-1 ring-accent/20">
                   <ShieldAlert className="h-5 w-5" />
                 </div>
 
