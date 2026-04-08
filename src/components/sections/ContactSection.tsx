@@ -1,13 +1,25 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Container } from "../ui/Container";
-import { SectionHeader } from "../ui/SectionHeader";
+import emailjs from "@emailjs/browser";
+import {
+  CheckCircle2,
+  Clock,
+  Mail,
+  MessageCircle,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+} from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { BlurFade } from "@/components/ui/blur-fade";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -16,18 +28,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BlurFade } from "@/components/ui/blur-fade";
-import {
-  ShieldCheck,
-  Clock,
-  MessageCircle,
-  Mail,
-  Phone,
-  CheckCircle2,
-  Stethoscope,
-  Sparkles,
-} from "lucide-react";
+import { getWhatsAppHref, hasEmailJsConfig, publicContactConfig } from "@/src/lib/contact";
+
+import { Container } from "../ui/Container";
+import { SectionHeader } from "../ui/SectionHeader";
 
 type FormState = {
   fullName: string;
@@ -54,6 +58,13 @@ function Helper({ children }: { children: React.ReactNode }) {
 export function ContactSection() {
   const [data, setData] = useState<FormState>(initial);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState(
+    "No pudimos enviar tu solicitud. Por favor, intentá nuevamente."
+  );
+
+  const emailJsReady = hasEmailJsConfig();
+  const whatsappHref = getWhatsAppHref("Hola, quiero recibir información sobre PreventiGen.");
+  const whatsappLabel = publicContactConfig.whatsappNumberRaw;
 
   const canSubmit = useMemo(() => {
     return (
@@ -65,30 +76,74 @@ export function ContactSection() {
   }, [data]);
 
   const missing = useMemo(() => {
-    const m: string[] = [];
-    if (data.fullName.trim().length < 3) m.push("nombre");
-    if (!data.email.includes("@")) m.push("email");
-    if (data.phone.trim().length < 6) m.push("teléfono");
-    if (!data.consent) m.push("consentimiento");
-    return m;
+    const items: string[] = [];
+
+    if (data.fullName.trim().length < 3) items.push("nombre");
+    if (!data.email.includes("@")) items.push("email");
+    if (data.phone.trim().length < 6) items.push("teléfono");
+    if (!data.consent) items.push("consentimiento");
+
+    return items;
   }, [data]);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit) return;
 
+    if (!emailJsReady) {
+      setStatus("error");
+      setErrorMessage(
+        "En este momento no pudimos procesar tu solicitud. Por favor, intentá nuevamente más tarde."
+      );
+      return;
+    }
+
     setStatus("loading");
+    setErrorMessage("No pudimos enviar tu solicitud. Por favor, intentá nuevamente.");
+
+    const trimmedMessage = data.message.trim();
+    const trimmedPhone = data.phone.trim();
+    const trimmedName = data.fullName.trim();
+    const trimmedEmail = data.email.trim();
+
     try {
-      await new Promise((r) => setTimeout(r, 800));
+      await emailjs.send(
+        publicContactConfig.emailJs.serviceId,
+        publicContactConfig.emailJs.templateId,
+        {
+          full_name: trimmedName,
+          from_name: trimmedName,
+          email: trimmedEmail,
+          reply_to: trimmedEmail,
+          phone: trimmedPhone,
+          contact_phone: trimmedPhone,
+          reason: data.reason,
+          message: trimmedMessage || "No dejó mensaje adicional.",
+          consent: data.consent ? "Sí" : "No",
+          submitted_at: new Date().toLocaleString("es-AR", {
+            dateStyle: "full",
+            timeStyle: "short",
+          }),
+          source: "Landing PreventiGen",
+        },
+        {
+          publicKey: publicContactConfig.emailJs.publicKey,
+        }
+      );
+
       setStatus("success");
       setData(initial);
-    } catch {
+    } catch (error) {
+      console.error("Error enviando email:", error);
       setStatus("error");
+      setErrorMessage(
+        "No pudimos enviar tu solicitud en este momento. Por favor, intentá nuevamente en unos minutos."
+      );
     }
   }
 
   return (
-    <section id="contacto" className="scroll-mt-24 py-16 sm:py-20 bg-surface-muted/40">
+    <section id="contacto" className="scroll-mt-24 bg-surface-muted/40 py-16 sm:py-20">
       <Container>
         <SectionHeader
           title="Solicitar contacto"
@@ -111,13 +166,11 @@ export function ContactSection() {
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-12">
-          {/* FORM */}
           <BlurFade inView delay={0.05} className="lg:col-span-7">
             <form
               onSubmit={onSubmit}
               className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-8"
             >
-              {/* glow sutil (coherente con tu estética) */}
               <div className="pointer-events-none absolute -top-20 left-1/2 h-44 w-[560px] -translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
 
               <div className="relative">
@@ -134,7 +187,6 @@ export function ContactSection() {
                 </div>
 
                 <div className="mt-6 grid gap-6">
-                  {/* Datos */}
                   <div>
                     <p className="text-sm font-semibold text-heading">Datos de contacto</p>
                     <div className="mt-4 grid gap-4">
@@ -147,7 +199,9 @@ export function ContactSection() {
                             id="fullName"
                             placeholder="Ej: Juan Pérez"
                             value={data.fullName}
-                            onChange={(e) => setData((s) => ({ ...s, fullName: e.target.value }))}
+                            onChange={(e) =>
+                              setData((current) => ({ ...current, fullName: e.target.value }))
+                            }
                             required
                           />
                         </div>
@@ -166,7 +220,9 @@ export function ContactSection() {
                               type="email"
                               placeholder="Ej: nombre@correo.com"
                               value={data.email}
-                              onChange={(e) => setData((s) => ({ ...s, email: e.target.value }))}
+                              onChange={(e) =>
+                                setData((current) => ({ ...current, email: e.target.value }))
+                              }
                               required
                             />
                           </div>
@@ -182,7 +238,9 @@ export function ContactSection() {
                               id="phone"
                               placeholder="Ej: +54 9 11 1234 5678"
                               value={data.phone}
-                              onChange={(e) => setData((s) => ({ ...s, phone: e.target.value }))}
+                              onChange={(e) =>
+                                setData((current) => ({ ...current, phone: e.target.value }))
+                              }
                               required
                             />
                           </div>
@@ -193,7 +251,6 @@ export function ContactSection() {
 
                   <div className="h-px w-full bg-border/70" />
 
-                  {/* Consulta */}
                   <div>
                     <p className="text-sm font-semibold text-heading">Tu consulta</p>
 
@@ -203,7 +260,10 @@ export function ContactSection() {
                         <Select
                           value={data.reason}
                           onValueChange={(value) =>
-                            setData((s) => ({ ...s, reason: value as FormState["reason"] }))
+                            setData((current) => ({
+                              ...current,
+                              reason: value as FormState["reason"],
+                            }))
                           }
                         >
                           <SelectTrigger className="mt-2 w-full">
@@ -226,11 +286,13 @@ export function ContactSection() {
                         <Textarea
                           id="message"
                           className="mt-2 min-h-[120px]"
-                          placeholder="Ej: Quiero entender qué estudios conviene sumar / tengo X objetivo, etc."
+                          placeholder="Ej: Quiero entender qué estudios conviene sumar o qué objetivo me conviene priorizar."
                           value={data.message}
-                          onChange={(e) => setData((s) => ({ ...s, message: e.target.value }))}
+                          onChange={(e) =>
+                            setData((current) => ({ ...current, message: e.target.value }))
+                          }
                         />
-                        <Helper>Con 2–3 líneas alcanza.</Helper>
+                        <Helper>Con 2 o 3 líneas alcanza.</Helper>
                       </div>
 
                       <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -239,11 +301,11 @@ export function ContactSection() {
                             id="consent"
                             checked={data.consent}
                             onCheckedChange={(checked) =>
-                              setData((s) => ({ ...s, consent: Boolean(checked) }))
+                              setData((current) => ({ ...current, consent: Boolean(checked) }))
                             }
                           />
                           <div className="mt-0.5">
-                            <Label htmlFor="consent" className="text-foreground font-medium">
+                            <Label htmlFor="consent" className="font-medium text-foreground">
                               Acepto que me contacten por WhatsApp o llamada.{" "}
                               <span className="text-muted-foreground">*</span>
                             </Label>
@@ -255,7 +317,11 @@ export function ContactSection() {
                       </div>
 
                       <div className="flex flex-col gap-3">
-                        <Button type="submit" disabled={!canSubmit || status === "loading"} size="lg">
+                        <Button
+                          type="submit"
+                          disabled={!canSubmit || status === "loading" || !emailJsReady}
+                          size="lg"
+                        >
                           {status === "loading" ? "Enviando..." : "Enviar solicitud"}
                         </Button>
 
@@ -264,6 +330,18 @@ export function ContactSection() {
                             Para enviar, completá:{" "}
                             <span className="text-foreground">{missing.join(", ")}</span>.
                           </p>
+                        ) : null}
+
+                        {whatsappHref ? (
+                          <a
+                            href={whatsappHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            ¿Preferís escribirnos por WhatsApp?
+                          </a>
                         ) : null}
 
                         {status === "success" ? (
@@ -280,15 +358,14 @@ export function ContactSection() {
 
                         {status === "error" ? (
                           <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>
-                              No pudimos enviar tu solicitud. Por favor, intentá nuevamente.
-                            </AlertDescription>
+                            <AlertTitle>No pudimos enviarlo</AlertTitle>
+                            <AlertDescription>{errorMessage}</AlertDescription>
                           </Alert>
                         ) : null}
 
                         <p className="text-xs text-muted-foreground">
-                          PreventiGen no atiende urgencias. Ante una emergencia, acudí a un servicio médico.
+                          PreventiGen no atiende urgencias. Ante una emergencia, acudí a un servicio
+                          médico.
                         </p>
                       </div>
                     </div>
@@ -298,26 +375,25 @@ export function ContactSection() {
             </form>
           </BlurFade>
 
-          {/* SIDE PANEL */}
           <BlurFade inView delay={0.12} className="lg:col-span-5">
             <div className="grid gap-4 lg:sticky lg:top-28">
               <div className="rounded-3xl border border-border bg-surface p-6">
                 <p className="text-heading font-semibold">Qué pasa después</p>
                 <ol className="mt-4 space-y-3 text-sm text-foreground">
                   <li className="flex gap-3">
-                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent text-xs">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs text-accent">
                       1
                     </span>
                     <span>Revisamos tu motivo y el contexto.</span>
                   </li>
                   <li className="flex gap-3">
-                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent text-xs">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs text-accent">
                       2
                     </span>
                     <span>Te orientamos sobre información útil para empezar.</span>
                   </li>
                   <li className="flex gap-3">
-                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent text-xs">
+                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs text-accent">
                       3
                     </span>
                     <span>Definimos próximos pasos con criterio clínico.</span>
@@ -329,7 +405,7 @@ export function ContactSection() {
                     La información de este sitio no sustituye una consulta médica.
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    PreventiGen acompaña y ordena información para una mejor orientación.
+                    PreventiGen acompaña y organiza información para una mejor orientación.
                   </p>
                 </div>
               </div>
@@ -338,20 +414,39 @@ export function ContactSection() {
                 <p className="text-heading font-semibold">Canales</p>
                 <div className="mt-4 space-y-3 text-sm">
                   <div className="rounded-2xl border border-border bg-surface-muted p-4">
-                    <p className="text-muted-foreground flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" /> WhatsApp (opcional)
+                    <p className="flex items-center gap-2 text-muted-foreground">
+                      <MessageCircle className="h-4 w-4" /> WhatsApp
                     </p>
-                    <p className="mt-1 text-muted-foreground">
-                      Podés agregar un link cuando lo tengas.
-                    </p>
+
+                    {whatsappHref && whatsappLabel ? (
+                      <>
+                        <p className="mt-1 font-medium text-heading">{whatsappLabel}</p>
+                        <a
+                          href={whatsappHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex items-center gap-2 text-primary hover:text-primary/80"
+                        >
+                          Abrir chat
+                        </a>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-muted-foreground">
+                        También podés dejarnos tu consulta desde el formulario y te contactaremos a
+                        la brevedad.
+                      </p>
+                    )}
                   </div>
 
                   <div className="rounded-2xl border border-border bg-surface-muted p-4">
-                    <p className="text-muted-foreground flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Email
+                    <p className="flex items-center gap-2 text-muted-foreground">
+                      <Mail className="h-4 w-4" /> Formulario de contacto
                     </p>
-                    <p className="mt-1 font-medium text-heading">contacto@preventigen.com</p>
-                    <p className="mt-1 text-muted-foreground">(placeholder, reemplazar)</p>
+                    <p className="mt-1 font-medium text-heading">Respuesta personalizada</p>
+                    <p className="mt-1 text-muted-foreground">
+                      Dejanos tus datos y tu motivo de consulta para orientarte con el próximo paso
+                      más adecuado.
+                    </p>
                   </div>
                 </div>
 

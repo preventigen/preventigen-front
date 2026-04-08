@@ -11,6 +11,7 @@ import { MedicalCredibilitySection } from "@/src/components/sections/MedicalCred
 import { FAQSection } from "@/src/components/sections/FAQSection";
 import { FinalCTASection } from "@/src/components/sections/FinalCTASection";
 import { ContactSection } from "@/src/components/sections/ContactSection";
+import { FloatingWhatsAppButton } from "@/src/components/FloatingWhatsAppButton";
 
 
 
@@ -36,6 +37,7 @@ export default function Home() {
         <ContactSection />
       </main>
 
+      <FloatingWhatsAppButton />
       <Footer />
     </>
   );

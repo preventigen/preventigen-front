@@ -24,17 +24,18 @@ type NavItem = { label: string; href: string };
 export function Navbar() {
   const items: NavItem[] = useMemo(
     () => [
-      { label: "Qué es", href: "#que-es" },
-      { label: "Cómo funciona", href: "#como-funciona" },
+      { label: "Que es", href: "#que-es" },
+      { label: "Como funciona", href: "#como-funciona" },
       { label: "ECAMM", href: "#ecamm" },
       { label: "Gemelo Digital", href: "#gemelo" },
       { label: "IA aplicada", href: "#ia" },
-      { label: "Equipo médico", href: "#equipo" },
+      { label: "Equipo medico", href: "#equipo" },
       { label: "Preguntas", href: "#preguntas" },
       { label: "Contacto", href: "#contacto" },
     ],
     []
   );
+  const desktopItems = useMemo(() => items.filter((item) => item.href !== "#contacto"), [items]);
 
   const [open, setOpen] = useState(false);
   const mounted = useSyncExternalStore(
@@ -47,8 +48,7 @@ export function Navbar() {
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-heading/90 backdrop-blur">
         <Container className="flex h-16 items-center">
-          <nav className="flex w-full items-center justify-between" aria-label="Navegación principal">
-            {/* Brand */}
+          <nav className="flex w-full items-center justify-between" aria-label="Navegacion principal">
             <a href="#top" className="flex items-center gap-2 text-white">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-accent/20 text-accent">
                 PG
@@ -56,11 +56,10 @@ export function Navbar() {
               <span className="font-semibold tracking-tight">PreventiGen</span>
             </a>
 
-            {/* Desktop */}
             <div className="hidden items-center gap-4 lg:flex">
               <NavigationMenu viewport={false} className="text-white">
                 <NavigationMenuList className="gap-1">
-                  {items.map((it) => (
+                  {desktopItems.map((it) => (
                     <NavigationMenuItem key={it.href}>
                       <NavigationMenuLink
                         href={it.href}
@@ -73,7 +72,6 @@ export function Navbar() {
                 </NavigationMenuList>
               </NavigationMenu>
 
-              {/* CTA (igual al Hero) */}
               <a href="#contacto" className="shrink-0">
                 <ShimmerButton
                   shimmerColor="rgba(255, 255, 255, 0.35)"
@@ -88,13 +86,12 @@ export function Navbar() {
               </a>
             </div>
 
-            {/* Mobile */}
             {mounted ? (
               <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild>
                   <button
-                    className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
-                    aria-label="Abrir menú"
+                    className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white lg:hidden"
+                    aria-label="Abrir menu"
                     type="button"
                   >
                     <MenuIcon className="h-5 w-5" />
@@ -103,7 +100,7 @@ export function Navbar() {
 
                 <SheetContent side="right" className="border-border bg-surface">
                   <SheetHeader>
-                    <SheetTitle className="text-heading">Menú</SheetTitle>
+                    <SheetTitle className="text-heading">Menu</SheetTitle>
                   </SheetHeader>
 
                   <div className="px-4 pb-6">
@@ -136,7 +133,7 @@ export function Navbar() {
                       </a>
 
                       <p className="mt-3 text-xs text-muted-foreground">
-                        No es atención de urgencias. Te contactamos para orientarte.
+                        No es atencion de urgencias. Te contactamos para orientarte.
                       </p>
                     </div>
                   </div>
@@ -144,8 +141,8 @@ export function Navbar() {
               </Sheet>
             ) : (
               <button
-                className="lg:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white"
-                aria-label="Abrir menú"
+                className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white lg:hidden"
+                aria-label="Abrir menu"
                 type="button"
               >
                 <MenuIcon className="h-5 w-5" />

@@ -271,3 +271,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes whatsapp-float-bounce {
+  0% {
+    transform: translateY(3px) scale(0.97);
+  }
+  45% {
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
