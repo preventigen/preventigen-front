@@ -67,7 +67,7 @@ export function HeroSection({ backgroundImageSrc, backgroundVideoSrc }: Props) {
           <BlurFade delay={0.02}>
             <div className="inline-flex rounded-2xl bg-white px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.18)]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-heading sm:text-sm">
-                BLUE ZONES • EXPERIENCE • MEDICINA DE LONGEVIDAD
+                BLUE ZONES EXPERIENCE • MEDICINA DE LONGEVIDAD
               </p>
             </div>
           </BlurFade>
