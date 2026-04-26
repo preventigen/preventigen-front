@@ -2,13 +2,14 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { MenuIcon } from "lucide-react";
-import { Container } from "./ui/Container";
+
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
 import {
   Sheet,
   SheetContent,
@@ -16,8 +17,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { getWhatsAppHref } from "@/src/lib/contact";
+
+import { Container } from "./ui/Container";
 
 type NavItem = { label: string; href: string };
 
@@ -35,14 +38,15 @@ export function Navbar() {
     ],
     []
   );
-  const desktopItems = useMemo(() => items.filter((item) => item.href !== "#contacto"), [items]);
-
   const [open, setOpen] = useState(false);
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false
   );
+  const whatsappHref =
+    getWhatsAppHref("Hola, quiero solicitar contacto por BLUE ZONES EXPERIENCE.") ?? "#contacto";
+  const opensWhatsApp = whatsappHref.startsWith("https://wa.me/");
 
   return (
     <>
@@ -59,7 +63,7 @@ export function Navbar() {
             <div className="hidden items-center gap-4 lg:flex">
               <NavigationMenu viewport={false} className="text-white">
                 <NavigationMenuList className="gap-1">
-                  {desktopItems.map((it) => (
+                  {items.map((it) => (
                     <NavigationMenuItem key={it.href}>
                       <NavigationMenuLink
                         href={it.href}
@@ -72,7 +76,13 @@ export function Navbar() {
                 </NavigationMenuList>
               </NavigationMenu>
 
-              <a href="#contacto" className="shrink-0">
+              <a
+                href={whatsappHref}
+                target={opensWhatsApp ? "_blank" : undefined}
+                rel={opensWhatsApp ? "noopener noreferrer" : undefined}
+                aria-label="Abrir WhatsApp para solicitar contacto"
+                className="shrink-0"
+              >
                 <ShimmerButton
                   shimmerColor="rgba(255, 255, 255, 0.35)"
                   shimmerDuration="4.5s"
@@ -119,7 +129,14 @@ export function Navbar() {
                     </ul>
 
                     <div className="mt-6">
-                      <a href="#contacto" onClick={() => setOpen(false)} className="block w-full">
+                      <a
+                        href={whatsappHref}
+                        target={opensWhatsApp ? "_blank" : undefined}
+                        rel={opensWhatsApp ? "noopener noreferrer" : undefined}
+                        aria-label="Abrir WhatsApp para solicitar contacto"
+                        onClick={() => setOpen(false)}
+                        className="block w-full"
+                      >
                         <ShimmerButton
                           shimmerColor="rgba(255, 255, 255, 0.35)"
                           shimmerDuration="4.5s"
@@ -130,6 +147,14 @@ export function Navbar() {
                         >
                           Solicitar contacto
                         </ShimmerButton>
+                      </a>
+
+                      <a
+                        href="#contacto"
+                        onClick={() => setOpen(false)}
+                        className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        Ir al formulario
                       </a>
 
                       <p className="mt-3 text-xs text-muted-foreground">

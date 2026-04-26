@@ -1,10 +1,13 @@
 "use client";
 
-import { Container } from "../ui/Container";
-import { Button } from "@/components/ui/button";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { ArrowRight, ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ShieldCheck, Stethoscope, Sparkles } from "lucide-react";
+import { BlurFade } from "@/components/ui/blur-fade";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { getWhatsAppHref } from "@/src/lib/contact";
+
+import { Container } from "../ui/Container";
 
 function HeroChip({ children }: { children: React.ReactNode }) {
   return (
@@ -18,18 +21,20 @@ function HeroChip({ children }: { children: React.ReactNode }) {
 }
 
 export function FinalCTASection() {
+  const whatsappHref =
+    getWhatsAppHref("Hola, quiero solicitar contacto por BLUE ZONES EXPERIENCE.") ?? "#contacto";
+  const opensWhatsApp = whatsappHref.startsWith("https://wa.me/");
+
   return (
     <section className="py-16 sm:py-20">
       <Container>
         <BlurFade inView delay={0.06}>
           <div className="relative overflow-hidden rounded-3xl border border-border bg-heading">
-            {/* Glow/overlay estilo hero */}
             <div className="pointer-events-none absolute inset-0 opacity-70 [background:radial-gradient(900px_circle_at_18%_20%,rgba(45,212,191,0.22),transparent_60%),radial-gradient(800px_circle_at_88%_80%,rgba(31,111,235,0.18),transparent_55%)]" />
             <div className="pointer-events-none absolute inset-0 bg-black/15" />
 
             <div className="relative px-6 py-10 sm:px-10 sm:py-12">
               <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
-                {/* Copy principal */}
                 <div className="lg:col-span-7">
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
                     <Sparkles className="h-4 w-4" />
@@ -40,27 +45,45 @@ export function FinalCTASection() {
                     Hablemos sobre tu prevención
                   </h2>
 
-                  <p className="mt-3 max-w-2xl text-white/80 leading-relaxed">
-                    Si querés orientación y un primer paso claro, dejá tus datos y te contactamos para acompañarte.
+                  <p className="mt-3 max-w-2xl leading-relaxed text-white/80">
+                    Si querés orientación y un primer paso claro, escribinos por WhatsApp o dejá tus
+                    datos en el formulario para acompañarte.
                   </p>
 
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <Button
-                      asChild
-                      size="lg"
-                      className="bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                    <a
+                      href={whatsappHref}
+                      target={opensWhatsApp ? "_blank" : undefined}
+                      rel={opensWhatsApp ? "noopener noreferrer" : undefined}
+                      aria-label="Abrir WhatsApp para solicitar contacto"
                     >
-                      <a href="#contacto" className="inline-flex items-center gap-2">
-                        Solicitar contacto <ArrowRight className="h-4 w-4" />
-                      </a>
-                    </Button>
+                      <ShimmerButton
+                        shimmerColor="rgba(255, 255, 255, 0.35)"
+                        shimmerDuration="4.5s"
+                        shimmerSize="0.12em"
+                        borderRadius="14px"
+                        background="var(--color-primary)"
+                        className="h-11 px-6 text-sm font-medium text-primary-foreground shadow-sm"
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          Solicitar contacto <ArrowRight className="h-4 w-4" />
+                        </span>
+                      </ShimmerButton>
+                    </a>
 
-                    <p className="text-xs sm:text-sm text-white/70">
-                      No es atención de urgencias. Te contactamos para orientarte.
-                    </p>
+                    <div className="flex flex-col gap-1">
+                      <a
+                        href="#contacto"
+                        className="text-sm font-medium text-white/80 underline-offset-4 transition hover:text-white hover:underline"
+                      >
+                        Ir al formulario
+                      </a>
+                      <p className="text-xs text-white/70 sm:text-sm">
+                        No es atención de urgencias. Te contactamos para orientarte.
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Chips como el Hero */}
                   <div className="mt-6 flex flex-wrap gap-2">
                     <HeroChip>Prevención personalizada</HeroChip>
                     <HeroChip>Confidencialidad</HeroChip>
@@ -68,25 +91,24 @@ export function FinalCTASection() {
                   </div>
                 </div>
 
-                {/* Panel secundario (sube confianza/marketing) */}
                 <div className="lg:col-span-5">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                    <p className="text-white font-semibold">Qué pasa después</p>
+                    <p className="font-semibold text-white">Qué pasa después</p>
                     <ol className="mt-4 space-y-3 text-sm text-white/80">
                       <li className="flex gap-3">
-                        <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white/90 text-xs">
+                        <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs text-white/90">
                           1
                         </span>
-                        <span>Nos contás tu objetivo y el contexto (sin compromiso).</span>
+                        <span>Nos contás tu objetivo y el contexto, sin compromiso.</span>
                       </li>
                       <li className="flex gap-3">
-                        <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white/90 text-xs">
+                        <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs text-white/90">
                           2
                         </span>
                         <span>Te orientamos sobre qué información sirve para empezar.</span>
                       </li>
                       <li className="flex gap-3">
-                        <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white/90 text-xs">
+                        <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-xs text-white/90">
                           3
                         </span>
                         <span>Definimos próximos pasos con criterio clínico.</span>
@@ -107,7 +129,6 @@ export function FinalCTASection() {
                 </div>
               </div>
 
-              {/* línea fina tipo “sección hero” */}
               <div className="mt-10 h-px w-full bg-white/10" />
             </div>
           </div>

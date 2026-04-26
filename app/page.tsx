@@ -3,6 +3,7 @@ import { Footer } from "@/src/components/Footer";
 
 import { HeroSection } from "@/src/components/sections/HeroSection";
 import { TrustBar } from "@/src/components/sections/TrustBar";
+import { BlueZonesExperienceSection } from "@/src/components/sections/BlueZonesExperienceSection";
 import { HowItWorks } from "@/src/components/sections/HowItWorks";
 import { WhatIsPreventiGen } from "@/src/components/sections/WhatIsPreventiGen";
 import { PlatformShowcaseSection } from "@/src/components/sections/PlatformShowcaseSection";
@@ -27,6 +28,7 @@ export default function Home() {
            backgroundVideoSrc="/videos/background video.mp4"
         />
         <TrustBar />
+        <BlueZonesExperienceSection />
         <HowItWorks />
         <WhatIsPreventiGen />
         <PlatformShowcaseSection />

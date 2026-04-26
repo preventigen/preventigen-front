@@ -1,20 +1,25 @@
 "use client";
 
-import { Container } from "../ui/Container";
 import { Badge } from "@/components/ui/badge";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { getWhatsAppHref } from "@/src/lib/contact";
+
+import { Container } from "../ui/Container";
 
 type Props = {
-  backgroundImageSrc?: string; 
-  backgroundVideoSrc?: string; 
+  backgroundImageSrc?: string;
+  backgroundVideoSrc?: string;
 };
 
 export function HeroSection({ backgroundImageSrc, backgroundVideoSrc }: Props) {
+  const whatsappHref =
+    getWhatsAppHref("Hola, quiero solicitar contacto por BLUE ZONES EXPERIENCE.") ?? "#contacto";
+  const opensWhatsApp = whatsappHref.startsWith("https://wa.me/");
+
   return (
     <section id="top" className="relative overflow-hidden">
-      {/* Background media */}
       <div className="absolute inset-0">
         {backgroundVideoSrc ? (
           <video
@@ -32,7 +37,11 @@ export function HeroSection({ backgroundImageSrc, backgroundVideoSrc }: Props) {
             className="h-full w-full bg-surface-muted"
             style={
               backgroundImageSrc
-                ? { backgroundImage: `url(${backgroundImageSrc})`, backgroundSize: "cover", backgroundPosition: "center" }
+                ? {
+                    backgroundImage: `url(${backgroundImageSrc})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }
                 : undefined
             }
           />
@@ -55,22 +64,36 @@ export function HeroSection({ backgroundImageSrc, backgroundVideoSrc }: Props) {
 
       <Container className="relative py-20 sm:py-24 lg:py-28">
         <div className="max-w-3xl">
+          <BlurFade delay={0.02}>
+            <div className="inline-flex rounded-2xl bg-white px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.18)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-heading sm:text-sm">
+                BLUE ZONES • EXPERIENCE • MEDICINA DE LONGEVIDAD
+              </p>
+            </div>
+          </BlurFade>
+
           <BlurFade delay={0.05}>
-            <h1 className="text-white text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+            <h1 className="mt-6 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
               Medicina preventiva con datos, criterio médico e IA.
             </h1>
           </BlurFade>
 
           <BlurFade delay={0.12}>
-            <p className="mt-5 text-white/85 text-base leading-relaxed sm:text-lg">
-              PreventiGen integra información clínica y tecnología avanzada para ayudarte a anticiparte,
-              comprender mejor tu salud y tomar decisiones informadas junto a un profesional.
+            <p className="mt-5 text-base leading-relaxed text-white/85 sm:text-lg">
+              PreventiGen integra información clínica y tecnología avanzada para ayudarte a
+              anticiparte, comprender mejor tu salud y tomar decisiones informadas junto a un
+              profesional.
             </p>
           </BlurFade>
 
           <BlurFade delay={0.18}>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <a href="#contacto">
+              <a
+                href={whatsappHref}
+                target={opensWhatsApp ? "_blank" : undefined}
+                rel={opensWhatsApp ? "noopener noreferrer" : undefined}
+                aria-label="Abrir WhatsApp para solicitar contacto"
+              >
                 <ShimmerButton
                   shimmerColor="rgba(255, 255, 255, 0.35)"
                   shimmerDuration="4.5s"
@@ -82,21 +105,30 @@ export function HeroSection({ backgroundImageSrc, backgroundVideoSrc }: Props) {
                   Solicitar contacto
                 </ShimmerButton>
               </a>
-              <p className="text-xs sm:text-sm text-white/70">
-                No es atención de urgencias. Te contactamos para orientarte.
-              </p>
+
+              <div className="flex flex-col gap-1">
+                <a
+                  href="#contacto"
+                  className="text-sm font-medium text-white/80 underline-offset-4 transition hover:text-white hover:underline"
+                >
+                  Ir al formulario
+                </a>
+                <p className="text-xs text-white/70 sm:text-sm">
+                  No es atención de urgencias. Te contactamos para orientarte.
+                </p>
+              </div>
             </div>
           </BlurFade>
 
           <BlurFade delay={0.24}>
             <div className="mt-7 flex flex-wrap gap-2">
-              <Badge variant="outline" className="border-white/15 text-white bg-white/10">
+              <Badge variant="outline" className="border-white/15 bg-white/10 text-white">
                 Prevención personalizada
               </Badge>
-              <Badge variant="outline" className="border-white/15 text-white bg-white/10">
+              <Badge variant="outline" className="border-white/15 bg-white/10 text-white">
                 Confidencialidad
               </Badge>
-              <Badge variant="outline" className="border-white/15 text-white bg-white/10">
+              <Badge variant="outline" className="border-white/15 bg-white/10 text-white">
                 Acompañamiento médico
               </Badge>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { Container } from "../ui/Container";
-import { SectionHeader } from "../ui/SectionHeader";
+import { HelpCircle, ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
+
 import {
   Accordion,
   AccordionContent,
@@ -9,8 +9,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { BlurFade } from "@/components/ui/blur-fade";
-import { HelpCircle, ShieldCheck, Stethoscope, Sparkles } from "lucide-react";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { getWhatsAppHref } from "@/src/lib/contact";
+
+import { Container } from "../ui/Container";
+import { SectionHeader } from "../ui/SectionHeader";
 
 type Item = { q: string; a: string; tag?: "clínico" | "IA" | "datos" | "urgencias" };
 
@@ -35,6 +38,9 @@ function Tag({ children, kind }: { children: React.ReactNode; kind: NonNullable<
 }
 
 export function FAQSection() {
+  const whatsappHref =
+    getWhatsAppHref("Hola, quiero solicitar contacto por BLUE ZONES EXPERIENCE.") ?? "#contacto";
+  const opensWhatsApp = whatsappHref.startsWith("https://wa.me/");
   const items: Item[] = [
     {
       q: "¿PreventiGen reemplaza a mi médico?",
@@ -48,7 +54,7 @@ export function FAQSection() {
     },
     {
       q: "¿Qué datos necesito para empezar?",
-      a: "Podés comenzar con información clínica básica. Según el caso, pueden incorporarse laboratorios, biomarcadores y (si aplica) genética.",
+      a: "Podés comenzar con información clínica básica. Según el caso, pueden incorporarse laboratorios, biomarcadores y, si aplica, genética.",
       tag: "datos",
     },
     {
@@ -74,7 +80,7 @@ export function FAQSection() {
   ];
 
   return (
-    <section id="preguntas" className="scroll-mt-24 py-16 sm:py-20 bg-surface-muted/40">
+    <section id="preguntas" className="scroll-mt-24 bg-surface-muted/40 py-16 sm:py-20">
       <Container>
         <SectionHeader
           title="Preguntas frecuentes"
@@ -82,10 +88,8 @@ export function FAQSection() {
         />
 
         <div className="mt-10 grid gap-6 lg:grid-cols-12">
-          {/* FAQ */}
           <BlurFade inView delay={0.08} className="lg:col-span-8">
             <div className="relative overflow-hidden rounded-3xl border border-border bg-surface">
-              {/* subtle top glow */}
               <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[520px] -translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
 
               <div className="flex items-start gap-3 border-b border-border/60 px-6 py-5">
@@ -93,7 +97,7 @@ export function FAQSection() {
                   <HelpCircle className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-heading font-semibold">¿En qué podemos ayudarte?</p>
+                  <p className="font-semibold text-heading">¿En qué podemos ayudarte?</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Si una respuesta no te alcanza, podés pedir contacto y te orientamos.
                   </p>
@@ -125,10 +129,10 @@ export function FAQSection() {
                                   {item.tag === "clínico"
                                     ? "Enfoque clínico"
                                     : item.tag === "IA"
-                                    ? "IA aplicada"
-                                    : item.tag === "datos"
-                                    ? "Datos y privacidad"
-                                    : "Urgencias"}
+                                      ? "IA aplicada"
+                                      : item.tag === "datos"
+                                        ? "Datos y privacidad"
+                                        : "Urgencias"}
                                 </Tag>
                               </div>
                             ) : null}
@@ -136,7 +140,7 @@ export function FAQSection() {
                         </div>
                       </AccordionTrigger>
 
-                      <AccordionContent className="px-6 pb-5 pt-1 text-muted-foreground leading-relaxed">
+                      <AccordionContent className="px-6 pb-5 pt-1 leading-relaxed text-muted-foreground">
                         {item.a}
                       </AccordionContent>
                     </AccordionItem>
@@ -146,7 +150,6 @@ export function FAQSection() {
             </div>
           </BlurFade>
 
-          {/* Side panel */}
           <BlurFade inView delay={0.14} className="lg:col-span-4">
             <div className="rounded-3xl border border-border bg-surface p-6">
               <div className="flex items-start gap-3">
@@ -154,7 +157,7 @@ export function FAQSection() {
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-heading font-semibold">¿No encontraste tu respuesta?</p>
+                  <p className="font-semibold text-heading">¿No encontraste tu respuesta?</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Te orientamos para entender tu caso y próximos pasos.
                   </p>
@@ -173,17 +176,30 @@ export function FAQSection() {
               </ul>
 
               <div className="mt-6">
-                <a href="#contacto" className="block w-full">
+                <a
+                  href={whatsappHref}
+                  target={opensWhatsApp ? "_blank" : undefined}
+                  rel={opensWhatsApp ? "noopener noreferrer" : undefined}
+                  aria-label="Abrir WhatsApp para solicitar contacto"
+                  className="block w-full"
+                >
                   <ShimmerButton
-                          shimmerColor="rgba(255, 255, 255, 0.35)"
-                          shimmerDuration="4.5s"
-                          shimmerSize="0.12em"
-                          borderRadius="14px"
-                          background="var(--color-primary)"
-                          className="h-11 w-full px-6 text-sm font-medium text-primary-foreground shadow-sm"
-                        >
-                          Solicitar contacto
-                        </ShimmerButton>
+                    shimmerColor="rgba(255, 255, 255, 0.35)"
+                    shimmerDuration="4.5s"
+                    shimmerSize="0.12em"
+                    borderRadius="14px"
+                    background="var(--color-primary)"
+                    className="h-11 w-full px-6 text-sm font-medium text-primary-foreground shadow-sm"
+                  >
+                    Solicitar contacto
+                  </ShimmerButton>
+                </a>
+
+                <a
+                  href="#contacto"
+                  className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Ir al formulario
                 </a>
 
                 <p className="mt-3 text-xs text-muted-foreground">
